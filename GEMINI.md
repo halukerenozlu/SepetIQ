@@ -1,200 +1,200 @@
-# GEMINI.md — Gemini CLI için Yönerge
+# GEMINI.md — Instructions for Gemini CLI
 
-Bu repoda **4 AI kod ajanı** çalışır:
-- **Claude Code** (kıdemli mimar) — Mimari, proje yapısı, kritik değişiklikler — gerekirse her şey.
-- **Sen — Gemini CLI** (kod yazıcı, frontend ağırlıklı) — Bu dosyayı okuyorsun.
-- **GitHub Copilot CLI** (genel yardımcı) — `AGENTS.md` okur.
-- **Codex** (kod yazıcı + code reviewer) — `AGENTS.md` okur.
+This repository uses **4 AI coding agents**:
+- **Claude Code** (senior architect) — Architecture, project structure, critical changes — everything if needed.
+- **You — Gemini CLI** (coding agent, frontend-focused) — You are reading this file.
+- **GitHub Copilot CLI** (general assistant) — Reads `AGENTS.md`.
+- **Codex** (coding agent + code reviewer) — Reads `AGENTS.md`.
 
-## Senin Rolün: Kod Yazımı (Özellikle Frontend)
+## Your Role: Coding (Especially Frontend)
 
-Şunları yaparsın:
-- **Frontend component'leri** (React, Next.js sayfaları, Tailwind ile UI)
-- **Form'lar, validasyonlar, fetch çağrıları**
-- **CSS/Tailwind düzenlemeleri**
-- **Tekrar eden iş** (mock data üretimi, seed dosyaları)
-- Claude veya kullanıcının verdiği brief/görev doğrultusunda implementation
+You handle:
+- **Frontend components** (React, Next.js pages, UI with Tailwind)
+- **Forms, validation, fetch calls**
+- **CSS/Tailwind adjustments**
+- **Repetitive work** (mock data generation, seed files)
+- Implementation based on briefs/tasks from Claude or the user
 
-**Mimari karar değiştirme ve büyük feature başlatma Claude'a aittir.** `docs/SPEC.md` her zaman baskındır.
+**Changing architecture decisions and starting large features belong to Claude.** `docs/SPEC.md` is always authoritative.
 
-## Proje Özeti
+## Project Summary
 
-**SepetIQ**, e-ticaret sayfalarında "sepete ekle" anında devreye giren agentic AI eklentisidir. Kullanıcıya ürün önermez — almak istediği ürünü gerçekten alıp almaması gerektiğini sorgular. Hackathon (SHACKATHON'26) projesidir.
+**SepetIQ** is an agentic AI extension that activates at the "add to cart" moment on e-commerce pages. It does not recommend products — it questions whether the user should truly buy the intended product. It is a hackathon (SHACKATHON'26) project.
 
-**Adlandırma uyarısı:** Repo root'undaki `AGENTS.md` Codex için yönergedir. SepetIQ'nun **kendi 7 LLM ajan sistemi** `docs/AGENT_SYSTEM.md`'de tanımlıdır. Karıştırma.
+**Naming warning:** `AGENTS.md` at repo root is the instruction file for Codex. SepetIQ's **own 7-LLM agent system** is defined in `docs/AGENT_SYSTEM.md`. Do not confuse them.
 
-## Tek Doğru Kaynak: `docs/` Klasörü
+## Single Source of Truth: `docs/` Folder
 
-Kod yazmadan önce **`docs/SPEC.md`'yi oku.** Oradan ilgili alt-dokümana yönlen.
+Before coding, **read `docs/SPEC.md` first.** Then navigate to the relevant sub-documents.
 
-Doküman önceliği (çakışma olursa):
-1. `docs/SPEC.md` — Master, baskındır
-2. Görev-özel doküman
-3. Kullanıcı sohbet talimatları (anlık değişiklikler)
+Document priority (if conflicts occur):
+1. `docs/SPEC.md` — Master, authoritative
+2. Task-specific document
+3. User chat instructions (instant overrides)
 
-## Repo Yapısı
+## Repo Structure
 
 ```
 sepetiq/
-├── CLAUDE.md                       ← Claude Code yönergesi
-├── AGENTS.md                       ← Codex yönergesi
-├── GEMINI.md                       ← Bu dosya (Gemini CLI)
+├── CLAUDE.md                       ← Claude Code instructions
+├── AGENTS.md                       ← Codex instructions
+├── GEMINI.md                       ← This file (Gemini CLI)
 ├── .github/
-│   └── copilot-instructions.md     ← GitHub Copilot yönergesi
-├── docs/                           ← Tek doğru kaynak
-├── backend/                        ← Python + FastAPI (genelde Claude yazar)
-├── web/                            ← Next.js + React (genelde SEN yazarsın)
-└── extension/                      ← Vite + React (paylaşımlı)
+│   └── copilot-instructions.md     ← GitHub Copilot instructions
+├── docs/                           ← Single source of truth
+├── backend/                        ← Python + FastAPI (usually written by Claude)
+├── web/                            ← Next.js + React (usually written by YOU)
+└── extension/                      ← Vite + React (shared)
 ```
 
-## Tech Stack ve Komutlar
+## Tech Stack and Commands
 
-| Katman | Stack | Paket Yöneticisi |
+| Layer | Stack | Package Manager |
 |---|---|---|
 | Backend | Python 3.12, FastAPI, LangGraph, Pydantic V2, Supabase | `uv` |
 | Web | Next.js 15, React 19, TypeScript, Tailwind, shadcn/ui | `pnpm` |
 | Extension | Vite, React, TypeScript, @crxjs/vite-plugin | `pnpm` |
 
 ```bash
-# Backend (genelde sen dokunmazsın)
+# Backend (you usually don't touch this)
 cd backend && uv sync && uv run uvicorn main:app --reload
 
-# Web (senin ana çalışma alanın)
+# Web (your main workspace)
 cd web && pnpm install && pnpm dev
 
 # Extension
 cd extension && pnpm install && pnpm dev
 ```
 
-**NEVER:** `npm` veya `bun` kullanma. Bu proje **pnpm** kullanır. Python tarafında **`uv`**, pip değil.
+**NEVER:** Use `npm` or `bun`. This project uses **pnpm**. On Python side, use **`uv`**, not pip.
 
-## Senin Ana Çalışma Alanın: Web (Next.js)
+## Your Main Workspace: Web (Next.js)
 
-Companion Web'in çoğu sayfasını sen yazacaksın. Detaylar `docs/WEB.md`'de. Önemli sayfalar:
+You will build most pages of the companion web app. See `docs/WEB.md` for details. Important pages:
 
-- **Landing page** (`/`) — Marketing sayfası
-- **Login** (`/login`) — Google OAuth butonu
+- **Landing page** (`/`) — Marketing page
+- **Login** (`/login`) — Google OAuth button
 - **Dashboard** (`/dashboard`) — Stats overview + recent decisions
-- **History** (`/dashboard/history`) — Karar listesi + filtreler
-- **Purchases** (`/dashboard/purchases`) — Past purchases ekleme formu
-- **Stats** (`/dashboard/stats`) — Recharts grafikleri (demo için kritik)
-- **Decision Detail** (`/decisions/[id]`) — Agent trace tam görünüm
-- **Preferences** (`/dashboard/preferences`) — Mod ve bütçe ayarları
-- **Demo Product Page** (`/product/[id]`) — Sahte e-ticaret sayfası
+- **History** (`/dashboard/history`) — Decision list + filters
+- **Purchases** (`/dashboard/purchases`) — Form to add past purchases
+- **Stats** (`/dashboard/stats`) — Recharts charts (critical for demo)
+- **Decision Detail** (`/decisions/[id]`) — Full agent trace view
+- **Preferences** (`/dashboard/preferences`) — Mode and budget settings
+- **Demo Product Page** (`/product/[id]`) — Mock e-commerce page
 
-Eklenti (extension) UI'sı için `docs/EXTENSION.md`'ye bak — özellikle Decision Panel component'i.
+For extension UI, check `docs/EXTENSION.md` — especially the Decision Panel component.
 
-## UI / UX Kuralları
+## UI / UX Rules
 
 ### Stack
-- **Component library:** shadcn/ui (Card, Button, Input, Dialog, vb.)
-- **Styling:** Tailwind CSS (utility-first, custom CSS minimum)
-- **Charts:** Recharts (Stats sayfası)
-- **Forms:** Native React state (form library yok, hackathon scope'unda gereksiz)
-- **State:** `useState`, `useReducer`. Redux/Zustand **yok**.
-- **Data fetching:** Native `fetch` + Next.js cache. SWR/TanStack Query **yok**.
+- **Component library:** shadcn/ui (Card, Button, Input, Dialog, etc.)
+- **Styling:** Tailwind CSS (utility-first, minimal custom CSS)
+- **Charts:** Recharts (Stats page)
+- **Forms:** Native React state (no form library, unnecessary for hackathon scope)
+- **State:** `useState`, `useReducer`. No Redux/Zustand.
+- **Data fetching:** Native `fetch` + Next.js cache. No SWR/TanStack Query.
 
-### Renk Paleti (Tailwind utility'leri)
+### Color Palette (Tailwind utilities)
 
 ```
-Primary (yapıcı):   emerald-500 / emerald-600
-Warning (dikkat):   amber-500
-Danger (dur):       red-500
-Info (bilgi):       sky-500
-Neutral:            zinc-* skalası
+Primary (constructive): emerald-500 / emerald-600
+Warning (caution):      amber-500
+Danger (stop):          red-500
+Info:                   sky-500
+Neutral:                zinc-* scale
 ```
 
-Karar verdiren renkler:
-- **Buy** kararı: emerald-500
+Decision colors:
+- **Buy:** emerald-500
 - **Conditional Buy:** lime-500
 - **Wait:** amber-500
 - **Don't Buy:** red-500
 - **Consider Alternative:** sky-500
 
-### Skor Renk Kodu
+### Score Color Code
 - 80-100: emerald-500
 - 60-79: lime-500
 - 40-59: amber-500
 - 20-39: orange-500
 - 0-19: red-500
 
-### Tipografi
-- **Font:** Inter (Google Fonts, Next.js'in `next/font/google` ile yüklenir)
-- **Başlıklar:** Bold, tracking-tight
+### Typography
+- **Font:** Inter (loaded via Next.js `next/font/google`)
+- **Headings:** Bold, tracking-tight
 - **Body:** Regular, leading-relaxed
 
-### Ton (UI Metinleri)
-Detay `docs/PRODUCT.md` § 10'da etik sınırlar:
-- ✅ "Bu karar şu an ihtiyaçtan çok anlık istek gibi görünüyor"
-- ❌ "Yine gereksiz bir şey alacaksın"
+### Tone (UI Copy)
+Ethical boundaries are detailed in `docs/PRODUCT.md` § 10:
+- ✅ "This decision currently looks more like an impulse than a real need."
+- ❌ "You're about to buy another unnecessary thing again."
 
-Suçlayıcı dil yasak. Saygılı ve net.
+Accusatory language is forbidden. Keep it respectful and clear.
 
-## Davranış Kuralları
+## Behavior Rules
 
-### YOU MUST: Türkçe Cevap
-Kullanıcı Türk. Cevaplar Türkçe. Kod, değişken adları, commit mesajları İngilizce. Kısaltma kullanırken İngilizce + Türkçe parantez.
+### YOU MUST: Respond in Turkish
+The user is Turkish. Responses must be in Turkish. Code, variable names, and commit messages stay in English. For abbreviations, include English + Turkish in parentheses.
 
-### YOU MUST: Önce Brief Oku
-Kullanıcı sana iş verdiğinde önce **bağlam dosyalarını oku** (genelde `docs/SPEC.md` + 1-2 alt doküman). Sonra implement et.
+### YOU MUST: Read the Brief First
+When the user gives a task, first **read the context docs** (usually `docs/SPEC.md` + 1–2 sub-docs). Then implement.
 
-### YOU MUST: Tek Component Tek Dosya
-Bir component bir dosyada. Çoklu component aynı dosyada yazma.
+### YOU MUST: One Component per File
+One component per file. Do not write multiple components in the same file.
 
 ### YOU MUST: TypeScript Strict
-TypeScript `strict: true` modunda. `any` kullanma. Tipleri eksiksiz yaz.
+TypeScript runs with `strict: true`. Do not use `any`. Write complete types.
 
-### YOU MUST: Tailwind, Custom CSS Değil
-CSS yazma. Tailwind utility'leri kullan. Çok özel durumlarda `@apply` ile component class yaz, ama önce Tailwind'de çözümü ara.
+### YOU MUST: Tailwind, Not Custom CSS
+Do not write CSS. Use Tailwind utilities. In very rare cases, use `@apply` for component classes, but first try solving with Tailwind.
 
 ### YOU MUST: shadcn/ui First
-UI element gerekirse önce shadcn/ui'da var mı bak. Varsa onu kullan. Yoksa Tailwind ile yaz.
+If a UI element is needed, check shadcn/ui first. If it exists, use it. Otherwise, build with Tailwind.
 
-### NEVER: localStorage / sessionStorage (Artifact'larda)
-Eğer artifact üretiyorsan browser storage **çalışmaz** Claude.ai sandbox'ında. React state veya in-memory variable kullan.
+### NEVER: localStorage / sessionStorage (in Artifacts)
+If you produce artifacts, browser storage **does not work** in Claude.ai sandbox. Use React state or in-memory variables.
 
-### NEVER: Yeni Bağımlılık Ekleme (Sormadan)
-Yeni paket gerekirse **önce sor**. SepetIQ stack'i kapalıdır.
+### NEVER: Add New Dependencies Without Asking
+If a new package is needed, **ask first**. SepetIQ stack is closed.
 
-### NEVER: Lockfile'a Dokunma
-`pnpm-lock.yaml` manuel edit yok. Sadece `pnpm install` ile güncellenir.
+### NEVER: Touch Lockfiles Manually
+No manual edits of `pnpm-lock.yaml`. Update only through `pnpm install`.
 
-### NEVER: Mimari Karar Değiştirme
-"Aslında Next.js yerine Astro kullansak" — **HAYIR.** Mimari kararlar alındı, değişmez.
+### NEVER: Change Architectural Decisions
+"What if we use Astro instead of Next.js?" — **NO.** Architecture decisions are made and fixed.
 
-### NEVER: Test Yazma (Sormadan)
-Hackathon scope'unda test yazımı yok. Eğer kullanıcı talep ederse yaz, yoksa atla.
+### NEVER: Write Tests Unless Asked
+No test writing by default in hackathon scope. Write tests only if the user explicitly asks.
 
-## Görev Bazlı Hangi Dökümanı Okumalısın
+## Which Document to Read for Which Task
 
-| Görev | Mutlaka Oku | Yardımcı |
+| Task | Must Read | Helpful |
 |---|---|---|
-| Web sayfa (Landing, Dashboard) | SPEC, WEB | PRODUCT (ton için) |
-| Component (form, kart, modal) | SPEC, WEB | DESIGN (varsa) |
-| Demo ürün sayfası (`/product/[id]`) | SPEC, WEB, MOCKDATA, EXTENSION | - |
-| Mock data üretimi | SPEC, MOCKDATA | PRODUCT |
-| Stats sayfası grafikleri | SPEC, WEB, DATABASE, API | - |
-| Eklenti UI component'i | SPEC, EXTENSION, API | - |
+| Web pages (Landing, Dashboard) | SPEC, WEB | PRODUCT (for tone) |
+| Components (form, card, modal) | SPEC, WEB | DESIGN (if available) |
+| Demo product page (`/product/[id]`) | SPEC, WEB, MOCKDATA, EXTENSION | - |
+| Mock data generation | SPEC, MOCKDATA | PRODUCT |
+| Stats page charts | SPEC, WEB, DATABASE, API | - |
+| Extension UI component | SPEC, EXTENSION, API | - |
 | Decision Detail (agent trace) | SPEC, WEB, API, AGENT_SYSTEM | - |
 
-## Önemli Notlar
+## Important Notes
 
-- **Aşama tabanlı plan:** `docs/ROADMAP.md` aşamalar halinde.
-- **Hackathon önceliği:** Her feature "demo'da görünecek mi?" testi.
-- **Demo data:** `demo_products`, `demo_user_profiles` sadece demo için, gerçek user akışıyla karıştırma.
+- **Phase-based plan:** `docs/ROADMAP.md` is organized by phases.
+- **Hackathon priority:** Every feature must pass "Will this show up in the demo?"
+- **Demo data:** `demo_products`, `demo_user_profiles` are only for demo; do not mix into real user flow.
 
-## Önemli Mimari Kararlar (Hızlı Referans)
+## Important Architectural Decisions (Quick Reference)
 
-- **State persistence:** Backend `MemorySaver` kullanır. Sen frontend yazıyorsun, doğrudan etkin yok.
-- **SSE (Server-Sent Events — Sunucu Tarafından Gönderilen Olaylar):** Decision Panel SSE stream'i tüketir. `EventSource` API'sini kullan. Reconnect için özel kod yazma — browser default yeter.
-- **Timezone:** `Intl.DateTimeFormat().resolvedOptions().timeZone` ile kullanıcı timezone'unu al, backend'e gönder.
-- **Onboarding:** Dashboard'da conditional banner (`if (purchaseCount === 0) showBanner`).
-- **Demo OAuth:** `/?demo=true&user=ayse` URL parametresi bypass. Middleware kontrol eder.
+- **State persistence:** Backend uses `MemorySaver`. You write frontend, so no direct impact.
+- **SSE (Server-Sent Events — Sunucu Tarafından Gönderilen Olaylar):** Decision Panel consumes SSE stream. Use `EventSource` API. Do not write custom reconnect logic — browser default is enough.
+- **Timezone:** Get user timezone with `Intl.DateTimeFormat().resolvedOptions().timeZone` and send it to backend.
+- **Onboarding:** Conditional banner in dashboard (`if (purchaseCount === 0) showBanner`).
+- **Demo OAuth:** URL param bypass with `/?demo=true&user=ayse`. Controlled by middleware.
 
-## Çalışma Stili
+## Working Style
 
-- **Brief'i tam oku.** Hızla geçme — Claude detay vermiştir.
-- **Soru sor.** Belirsizlik varsa kullanıcıya sor, varsayım yapma.
-- **Küçük adım.** Bir sayfayı tek seferde değil, parçalara böl.
-- **Test et.** Yazdığını çalıştır, hata var mı bak.
-- **Plan mode kullan.** Karmaşık görevlerde Gemini CLI'nin plan mode'unu kullan.
+- **Read the brief fully.** Don't skim — Claude provides detailed context.
+- **Ask questions.** If something is ambiguous, ask the user; do not assume.
+- **Small steps.** Build pages in parts, not all at once.
+- **Test it.** Run what you wrote and check for errors.
+- **Use plan mode.** Use Gemini CLI plan mode for complex tasks.

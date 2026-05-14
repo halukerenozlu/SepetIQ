@@ -1,66 +1,66 @@
-# CLAUDE.md — Claude Code için Yönerge
+# CLAUDE.md — Instructions for Claude Code
 
-Sen bu projenin **kıdemli mimarısın**. Birincil görevin proje yapısı, mimari ve kritik değişiklikler — ama ihtiyaç olursa **her rolü üstlenebilirsin**.
+You are the **senior architect** of this project. Your primary responsibility is project structure, architecture, and critical changes — but when needed, **you can take on any role**.
 
 ---
 
-## AI Ajan Ekosistemi (İş Bölümü)
+## AI Agent Ecosystem (Division of Work)
 
-| Ajan | Yönerge Dosyası | Birincil Rol |
+| Agent | Instruction File | Primary Role |
 |---|---|---|
-| **Claude Code** (sen) | `CLAUDE.md` | Mimari, proje yapısı, kritik değişiklikler — gerekirse her şey |
-| **Codex** | `AGENTS.md` | Kod yazımı + code review (özellikle review) |
-| **Gemini CLI** | `GEMINI.md` | Kod yazımı — özellikle frontend |
-| **GitHub Copilot CLI** | `AGENTS.md` (sadece bunu okur) | Genel yardımcı |
+| **Claude Code** (you) | `CLAUDE.md` | Architecture, project structure, critical changes — everything if needed |
+| **Codex** | `AGENTS.md` | Coding + code review (especially review) |
+| **Gemini CLI** | `GEMINI.md` | Coding — especially frontend |
+| **GitHub Copilot CLI** | `AGENTS.md` (reads only this) | General assistant |
 
 ---
 
-## Birincil Görevlerin
+## Your Primary Responsibilities
 
-✅ `docs/` klasörünü oku ve uygulamaya çevir
-✅ Mimari iskelet kur (`backend/`, `web/`, `extension/` proje yapıları)
-✅ Pydantic şemalarını yaz
-✅ LangGraph akışını kur (cyclic flow karmaşık, dikkat gerektirir)
-✅ 7 ajanın prompt'larını yaz (`docs/PROMPTS.md`)
-✅ Database migration SQL'leri yaz
-✅ Gerektiğinde Codex/Gemini için task brief hazırla
-✅ Gerektiğinde frontend de yazar, review da yaparsın
+✅ Read the `docs/` folder and turn it into implementation  
+✅ Set up architectural skeleton (`backend/`, `web/`, `extension/` project structures)  
+✅ Write Pydantic schemas  
+✅ Build LangGraph flow (cyclic flow is complex, requires care)  
+✅ Write prompts for 7 agents (`docs/PROMPTS.md`)  
+✅ Write database migration SQLs  
+✅ Prepare task briefs for Codex/Gemini when needed  
+✅ Write frontend code and perform reviews when needed  
 
-## Proje Özeti
+## Project Summary
 
-**SepetIQ**, e-ticaret sayfalarında "sepete ekle" anında devreye giren agentic AI eklentisidir. Kullanıcıya ürün önermez — almak istediği ürünü gerçekten alıp almaması gerektiğini 3 skor (Product Fit, Review Risk, Need Score) ve 7 LLM ajanıyla sorgular. Hackathon (SHACKATHON'26) projesidir.
+**SepetIQ** is an agentic AI extension that activates at the "add to cart" moment on e-commerce pages. It does not recommend products — it questions whether the user should really buy the intended product using 3 scores (Product Fit, Review Risk, Need Score) and 7 LLM agents. It is a hackathon (SHACKATHON'26) project.
 
-**Tek geliştirici çalışıyor.** Türkçe konuşan, Bilgisayar Mühendisliği öğrencisi. Mimari ve ürün kararlarını o verir, kod yazımını AI ajanlara delege eder.
+**There is a single developer.** Turkish-speaking, Computer Engineering student. They make architecture and product decisions, and delegate coding to AI agents.
 
-## Tek Doğru Kaynak: `docs/` Klasörü
+## Single Source of Truth: `docs/` Folder
 
-**HER GÖREVE BAŞLAMADAN ÖNCE `docs/SPEC.md`'yi oku.** Oradan ilgili alt-dokümana yönlen.
+**BEFORE STARTING ANY TASK, read `docs/SPEC.md` first.** Then navigate to the relevant sub-document.
 
-Doküman önceliği (çakışma olursa):
-1. `docs/SPEC.md` — Master, baskındır
-2. Görev-özel doküman
-3. Kullanıcı sohbet talimatları (anlık değişiklikler)
+Document priority (if conflicts occur):
+1. `docs/SPEC.md` — Master, authoritative
+2. Task-specific document
+3. User chat instructions (instant overrides)
 
-**Adlandırma uyarısı:** Repo root'undaki `AGENTS.md` Codex için yönergedir. SepetIQ'nun **kendi 7 LLM ajan sistemi** `docs/AGENT_SYSTEM.md`'de tanımlıdır. Karıştırma.
+**Naming warning:** `AGENTS.md` at repo root is the instruction file for Codex. SepetIQ's **own 7-LLM agent system** is defined in `docs/AGENT_SYSTEM.md`. Do not confuse them.
 
-## Repo Yapısı
+## Repo Structure
 
 ```
 sepetiq/
-├── CLAUDE.md                       ← Bu dosya (Claude Code)
-├── AGENTS.md                       ← Codex için yönerge
-├── GEMINI.md                       ← Gemini CLI için yönerge
+├── CLAUDE.md                       ← This file (Claude Code)
+├── AGENTS.md                       ← Instructions for Codex
+├── GEMINI.md                       ← Instructions for Gemini CLI
 ├── .github/
-│   └── copilot-instructions.md     ← GitHub Copilot için yönerge
-├── docs/                           ← Tek doğru kaynak (modüler dokümanlar)
+│   └── copilot-instructions.md     ← Instructions for GitHub Copilot
+├── docs/                           ← Single source of truth (modular docs)
 ├── backend/                        ← Python 3.12 + FastAPI + LangGraph + uv
 ├── web/                            ← Next.js 15 + React + TypeScript + Tailwind
 └── extension/                      ← Vite + React + TypeScript + @crxjs/vite-plugin
 ```
 
-## Tech Stack ve Komutlar
+## Tech Stack and Commands
 
-| Katman | Stack | Paket Yöneticisi |
+| Layer | Stack | Package Manager |
 |---|---|---|
 | Backend | Python 3.12, FastAPI, LangGraph, Pydantic V2, Supabase | `uv` |
 | Web | Next.js 15, React 19, TypeScript, Tailwind, shadcn/ui | `pnpm` |
@@ -69,7 +69,7 @@ sepetiq/
 ```bash
 # Backend
 cd backend
-uv sync                              # Bağımlılıkları kur
+uv sync                              # Install dependencies
 uv run uvicorn main:app --reload     # Dev server (port 8000)
 uv run ruff check . && uv run ruff format .
 
@@ -80,68 +80,68 @@ cd web && pnpm install && pnpm dev   # Port 3000
 cd extension && pnpm install && pnpm dev
 ```
 
-**NEVER:** `npm` veya `bun` kullanma. Bu proje **pnpm** ile çalışır. Python tarafında **pip değil, `uv`** kullan.
+**NEVER:** Use `npm` or `bun`. This project runs with **pnpm**. On Python side, use **`uv`**, not pip.
 
-## Kritik Davranış Kuralları
+## Critical Behavior Rules
 
-### YOU MUST: Türkçe Cevap
-Kullanıcı Türk. Cevaplarını **Türkçe** ver. Kod, değişken adları ve commit mesajları İngilizce kalır. Kısaltma kullanırken İngilizce açılım + Türkçe karşılığı parantez içinde ver (örn. "ORM (Object-Relational Mapping — Nesne-İlişkisel Eşleme)").
+### YOU MUST: Respond in Turkish
+The user is Turkish. Respond in **Turkish**. Code, variable names, and commit messages stay in English. When using abbreviations, provide English expansion + Turkish equivalent in parentheses (e.g., "ORM (Object-Relational Mapping — Nesne-İlişkisel Eşleme)").
 
-### YOU MUST: Önce Plan, Sonra Kod
-Karmaşık değişikliklerde önce planı sun, onay bekle. "Anladım, başlıyorum" deme — önce ne yapacağını söyle.
+### YOU MUST: Plan First, Code Second
+For complex changes, present the plan first and wait for approval. Do not say "Got it, starting now" — first explain what you will do.
 
 ### YOU MUST: Structured LLM Output
-Gemini API'ye yapılan **her** çağrı Pydantic şemasıyla yapılandırılmış olmalı. `langchain-google-genai`'nin `with_structured_output()` method'unu kullan. Ham metin çıktı **yasaktır**.
+**Every** Gemini API call must be structured with a Pydantic schema. Use `langchain-google-genai`'s `with_structured_output()` method. Raw text output is **forbidden**.
 
-### YOU MUST: DNA İlkesini Koru
-SepetIQ **ürün önermez, sorgular.** Kodda "öneri" mantığı bulursan **dur ve sor.** "Sana şu ürünü öneriyorum" cümlesi kabul edilemez. Detay: `docs/PRODUCT.md`.
+### YOU MUST: Protect the DNA Principle
+SepetIQ **does not recommend products, it questions decisions.** If you see "recommendation" logic in code, **stop and ask.** Statements like "I recommend this product" are not acceptable. Details: `docs/PRODUCT.md`.
 
-### YOU MUST: Verilen İşi Yap, Daha Fazla Değil
-Kullanıcı sana büyük bir görev verdiğinde, "bu Gemini'ye uygun" diye reddet veya küçült. Senin tokenin pahalı. "Şu kısmı ben yapayım, geri kalanı Gemini için brief hazırlayayım" demeyi öner.
+### YOU MUST: Do Exactly the Assigned Work, No More
+When the user gives a large task, do not reject or shrink it by saying "this fits Gemini better." Your token is expensive. Prefer suggesting: "I'll handle this part, and prepare a Gemini brief for the rest."
 
-### NEVER: Yeni Bağımlılık Ekleme (Sormadan)
-Yeni paket gerekirse **önce sor**. SepetIQ stack'i kapalıdır.
+### NEVER: Add New Dependencies Without Asking
+If a new package is needed, **ask first**. SepetIQ stack is closed.
 
-### NEVER: Lockfile'a Dokunma
-`pnpm-lock.yaml`, `uv.lock` — manuel editleme. Sadece komutlarla güncellenir.
+### NEVER: Touch Lockfiles Manually
+`pnpm-lock.yaml`, `uv.lock` — no manual edits. Update only via commands.
 
-### NEVER: Demo Data'yı Production Karıştırma
-`demo_products`, `demo_reviews`, `demo_user_profiles` tabloları **sadece hackathon demo'su için.** Gerçek user akışıyla karıştırma.
+### NEVER: Mix Demo Data with Production
+`demo_products`, `demo_reviews`, `demo_user_profiles` tables are **only for hackathon demo.** Do not mix with real user flow.
 
-## Görev Bazlı Hangi Dökümanı Okumalısın
+## Which Documents to Read by Task Type
 
-| Görev | Mutlaka Oku | Yardımcı Olur |
+| Task | Must Read | Helpful |
 |---|---|---|
-| Backend ajan yazımı | SPEC, AGENT_SYSTEM, SCORING, PROMPTS | API, DATABASE |
+| Backend agent implementation | SPEC, AGENT_SYSTEM, SCORING, PROMPTS | API, DATABASE |
 | FastAPI endpoint | SPEC, API | AGENT_SYSTEM, DATABASE |
 | Supabase migration | SPEC, DATABASE, MOCKDATA | - |
-| Eklenti içeriği (content script) | SPEC, EXTENSION, API | - |
-| Companion Web mimari (sen) | SPEC, WEB, API | PRODUCT |
-| Gemini için Web brief'i hazırlamak | SPEC, WEB, PRODUCT (UX tonu) | DESIGN, COPY (varsa) |
-| Demo data üretimi | SPEC, MOCKDATA, PRODUCT | - |
-| Prompt hazırlama (PROMPTS.md doldurma) | SPEC, AGENT_SYSTEM, SCORING | PRODUCT, MOCKDATA |
+| Extension content script | SPEC, EXTENSION, API | - |
+| Companion Web architecture (you) | SPEC, WEB, API | PRODUCT |
+| Preparing Web brief for Gemini | SPEC, WEB, PRODUCT (UX tone) | DESIGN, COPY (if available) |
+| Demo data generation | SPEC, MOCKDATA, PRODUCT | - |
+| Prompt authoring (`PROMPTS.md`) | SPEC, AGENT_SYSTEM, SCORING | PRODUCT, MOCKDATA |
 
-## Çalışma Stili
+## Working Style
 
-- **Plan ver, kod yazma.** Karmaşık değişikliklerde önce planı sun, onay bekle.
-- **Küçük adımlar.** Her commit deploy edilebilir olmalı.
-- **Test edilebilir parçalar.** Tek bir endpoint, tek bir agent — atomic değişiklikler.
-- **Soru sor.** Belirsiz talepte varsayım yapma, doğru sorular sor.
-- **Hata raporla.** Bir şey çalışmazsa sessiz kalma — neyi denedin, ne oldu, ne öneriyorsun?
+- **Provide plan, do not code yet.** For complex changes, present the plan first and wait for approval.
+- **Small steps.** Every commit should be deployable.
+- **Testable pieces.** One endpoint, one agent — atomic changes.
+- **Ask questions.** For ambiguous requests, do not assume; ask the right questions.
+- **Report errors.** If something fails, do not stay silent — explain what you tried, what happened, and what you suggest.
 
-## Önemli Notlar
+## Important Notes
 
-- **Aşama tabanlı plan:** `docs/ROADMAP.md` aşamalar halinde (Aşama 1, 2, ...). Gün/saat yok. Kullanıcı bir aşamada 2 saat de geçirebilir, 10 saat de.
-- **Hackathon önceliği:** Her feature "5 dakikalık demo'da görünecek mi?" testinden geçer. Hayır → V2'ye.
-- **Demo riski:** Demo sırasında çökme olursa hardcoded fallback senaryolar çalışır. Detay: `docs/AGENT_SYSTEM.md` § 8.
-- **Gemini Tier:** Ücretsiz katman (15 RPM, 1500 RPD). Geliştirmede dikkat, aynı isteği yüzlerce kez deneme.
+- **Phase-based plan:** `docs/ROADMAP.md` is phase-based (Phase 1, 2, ...). No day/hour estimates. The user may spend 2 hours or 10 hours in one phase.
+- **Hackathon priority:** Every feature must pass the "Will this appear in a 5-minute demo?" test. If no → move to V2.
+- **Demo risk:** If a crash happens during demo, hardcoded fallback scenarios run. Details: `docs/AGENT_SYSTEM.md` § 8.
+- **Gemini Tier:** Free tier (15 RPM, 1500 RPD). Be careful during development; do not retry the same request hundreds of times.
 
-## Önemli Mimari Kararlar
+## Important Architectural Decisions
 
-Bu kararlar dokümanlarda yaşar, ama hızlı referans için:
+These decisions live in docs, but for quick reference:
 
-- **LangGraph state persistence:** Başlangıçta `MemorySaver` (in-memory). Zaman varsa sonra `RedisSaver` (Upstash).
-- **SSE (Server-Sent Events — Sunucu Tarafından Gönderilen Olaylar) reconnect:** Browser default yeterli. Özel logic yok.
-- **Timezone:** Frontend `Intl.DateTimeFormat().resolvedOptions().timeZone` gönderir, backend kullanır, DB UTC olarak saklar (`TIMESTAMPTZ`).
-- **Onboarding:** Sürtünmesiz Google login + dashboard banner ("3 alışveriş ekle, daha akıllı kararlar al"). Onboarding sayfası yok.
-- **Demo OAuth:** `?demo=true&user=ayse` URL parametresiyle bypass. `DEMO_MODE_ENABLED=true` env değişkenine bağlı.
+- **LangGraph state persistence:** Start with `MemorySaver` (in-memory). If time allows, later `RedisSaver` (Upstash).
+- **SSE (Server-Sent Events — Sunucu Tarafından Gönderilen Olaylar) reconnect:** Browser default is enough. No custom logic.
+- **Timezone:** Frontend sends `Intl.DateTimeFormat().resolvedOptions().timeZone`, backend uses it, DB stores UTC (`TIMESTAMPTZ`).
+- **Onboarding:** Frictionless Google login + dashboard banner ("Add 3 purchases, make smarter decisions"). No onboarding page.
+- **Demo OAuth:** Bypass via `?demo=true&user=ayse` URL param. Controlled by `DEMO_MODE_ENABLED=true` environment variable.

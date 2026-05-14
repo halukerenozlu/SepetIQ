@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "fastapi>=0.136.1",
+    "httpx>=0.28.1",
     "langchain-google-genai>=4.2.2",
     "langgraph>=1.2.0",
     "pydantic>=2.13.4",
@@ -13,3 +14,15 @@ dependencies = [
     "supabase>=2.30.0",
     "uvicorn[standard]>=0.46.0",
 ]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.14.8",
+]
+
+[tool.ruff]
+line-length = 160
+target-version = "py312"
+
+[tool.ruff.format]
+line-ending = "auto"
