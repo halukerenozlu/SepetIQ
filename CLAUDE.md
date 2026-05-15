@@ -145,3 +145,7 @@ These decisions live in docs, but for quick reference:
 - **Timezone:** Frontend sends `Intl.DateTimeFormat().resolvedOptions().timeZone`, backend uses it, DB stores UTC (`TIMESTAMPTZ`).
 - **Onboarding:** Frictionless Google login + dashboard banner ("Add 3 purchases, make smarter decisions"). No onboarding page.
 - **Demo OAuth:** Bypass via `?demo=true&user=ayse` URL param. Controlled by `DEMO_MODE_ENABLED=true` environment variable.
+
+## Skills
+
+Claude Code reads `.claude/skills/` directly at runtime (brainstorming, improve-codebase-architecture, shadcn, supabase-postgres-best-practices, vercel-react-best-practices, web-design-guidelines). The extracted summary for other agents (Codex, Gemini CLI, GitHub Copilot) lives at `docs/shared-skills-summary.md`.
