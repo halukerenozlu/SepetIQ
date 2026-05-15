@@ -19,6 +19,7 @@ from models.state import AgentState
 # Yardımcı: tarih parse
 # ---------------------------------------------------------------------------
 
+
 def _parse_date(p: dict[str, Any]) -> datetime:
     raw = p.get("purchase_date") or p.get("purchased_at") or ""
     try:
@@ -30,6 +31,7 @@ def _parse_date(p: dict[str, Any]) -> datetime:
 # ---------------------------------------------------------------------------
 # Ana ajan fonksiyonu
 # ---------------------------------------------------------------------------
+
 
 async def run(state: AgentState) -> dict:
     started = time.monotonic()
@@ -46,11 +48,7 @@ async def run(state: AgentState) -> dict:
     # Adım 1: Bu ay harcanan
     # ------------------------------------------------------------------
     now = datetime.now()
-    spent_this_month: float = sum(
-        float(p.get("price") or 0.0)
-        for p in past_purchases
-        if _parse_date(p).year == now.year and _parse_date(p).month == now.month
-    )
+    spent_this_month: float = sum(float(p.get("price") or 0.0) for p in past_purchases if _parse_date(p).year == now.year and _parse_date(p).month == now.month)
 
     # ------------------------------------------------------------------
     # Adım 2: Bütçe kalan ve kullanım oranı
@@ -81,21 +79,13 @@ async def run(state: AgentState) -> dict:
     else:
         if budget_utilization >= 0.5 or budget_remaining < product_price:
             financial_risk = "high"
-            risk_reason = (
-                f"Ürün fiyatı ({product_price:.0f} TL) aylık bütçenin "
-                f"%{budget_utilization * 100:.0f}'ini oluşturuyor."
-            )
+            risk_reason = f"Ürün fiyatı ({product_price:.0f} TL) aylık bütçenin %{budget_utilization * 100:.0f}'ini oluşturuyor."
         elif budget_utilization >= 0.25:
             financial_risk = "medium"
-            risk_reason = (
-                f"Ürün fiyatı aylık bütçenin çeyreğinden fazla; "
-                f"kalan bütçe: {budget_remaining:.0f} TL."
-            )
+            risk_reason = f"Ürün fiyatı aylık bütçenin çeyreğinden fazla; kalan bütçe: {budget_remaining:.0f} TL."
         else:
             financial_risk = "low"
-            risk_reason = (
-                f"Ürün fiyatı bütçeyle uyumlu; kalan bütçe: {budget_remaining:.0f} TL."
-            )
+            risk_reason = f"Ürün fiyatı bütçeyle uyumlu; kalan bütçe: {budget_remaining:.0f} TL."
 
     # ------------------------------------------------------------------
     # Adım 4: blocks_purchase
@@ -125,25 +115,21 @@ async def run(state: AgentState) -> dict:
 
     duration_ms = int((time.monotonic() - started) * 1000)
     traces = list(state.get("agent_traces") or [])
-    traces.append({
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "agent": "budget_guard",
-        "status": "completed",
-        "duration_ms": duration_ms,
-        "input_summary": (
-            f"Ürün fiyatı: {product_price:.0f} TL, "
-            f"aylık bütçe: {monthly_budget:.0f} TL"
-        ),
-        "output_summary": (
-            f"Finansal risk: {financial_risk}, "
-            f"satın almayı engelliyor: {blocks_purchase}"
-        ),
-        "key_findings": [
-            f"Bu ay harcanan: {spent_this_month:.0f} TL",
-            f"Bütçe kullanımı: %{budget_utilization * 100:.0f}",
-            f"Fiyat/ortalama oranı: {price_vs_average:.1f}x",
-        ],
-        "triggered_actions": ["purchase_blocked"] if blocks_purchase else [],
-    })
+    traces.append(
+        {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "agent": "budget_guard",
+            "status": "completed",
+            "duration_ms": duration_ms,
+            "input_summary": (f"Ürün fiyatı: {product_price:.0f} TL, aylık bütçe: {monthly_budget:.0f} TL"),
+            "output_summary": (f"Finansal risk: {financial_risk}, satın almayı engelliyor: {blocks_purchase}"),
+            "key_findings": [
+                f"Bu ay harcanan: {spent_this_month:.0f} TL",
+                f"Bütçe kullanımı: %{budget_utilization * 100:.0f}",
+                f"Fiyat/ortalama oranı: {price_vs_average:.1f}x",
+            ],
+            "triggered_actions": ["purchase_blocked"] if blocks_purchase else [],
+        }
+    )
 
     return {"budget_guard_output": result, "agent_traces": traces}

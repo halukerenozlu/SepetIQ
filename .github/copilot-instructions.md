@@ -1,7 +1,7 @@
-# GitHub Copilot Yönergeleri
+# GitHub Copilot Instructions
 
-Bu repodaki AI kod ajanı kuralları `AGENTS.md` dosyasında tanımlıdır (repo root'unda).
-**`AGENTS.md`'yi oku ve oradaki kurallara uy.**
+AI coding agent rules for this repo are defined in `AGENTS.md` (repo root).
+**Read `AGENTS.md` and follow its rules.**
 
-Senin rolün: Genel yardımcı. Hızlı görevler, inline tamamlamalar, küçük fix'ler.
-Büyük feature'lar Claude'a, frontend yazımı Gemini'ye, code review Codex'e gider.
+Your role: General assistant. Quick tasks, inline completions, small fixes.
+Large features go to Claude, frontend work to Gemini, code review to Codex.

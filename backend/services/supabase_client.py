@@ -53,4 +53,5 @@ async def save_decision(decision_data: dict) -> str:
     """Saves a completed decision to the decisions table. Returns decision_id."""
     # TODO: Implement real Supabase insert
     import uuid
+
     return f"dec_{uuid.uuid4().hex[:8]}"

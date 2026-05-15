@@ -22,7 +22,7 @@
 | Method | Path | Açıklama | Auth Gerekli |
 |---|---|---|---|
 | POST | `/api/v1/decisions/analyze` | Tam karar akışını başlat | ✓ |
-| POST | `/api/v1/decisions/answer-questions` | Need sorularına cevap ver | ✓ |
+| POST | `/api/v1/decisions/{decision_id}/answer` | Need sorularına cevap ver | ✓ |
 | GET | `/api/v1/decisions/{decision_id}` | Karar detayı | ✓ |
 | GET | `/api/v1/decisions/{decision_id}/trace` | Agent trace | ✓ |
 | GET | `/api/v1/users/me` | Kullanıcı profili | ✓ |
@@ -109,7 +109,7 @@ data: {
   ]
 }
 
-[Akış burada durur - kullanıcı /answer-questions endpoint'ine cevap göndermeli]
+[Akış burada durur - kullanıcı /api/v1/decisions/{decision_id}/answer endpoint'ine cevap göndermeli]
 ```
 
 **Cyclic Flow Devamı:**
@@ -147,14 +147,13 @@ data: {"total_duration_ms": 9450, "cycles": 2}
 
 ---
 
-### 3.2 POST `/api/v1/decisions/answer-questions`
+### 3.2 POST `/api/v1/decisions/{decision_id}/answer`
 
 Need Analyzer'ın sorduğu sorulara cevap gönderir.
 
 **Request Body:**
 ```typescript
 {
-  "decision_id": "dec_abc123",
   "answers": {
     "q1": "1-3 saat",
     "q2": "social_media",
@@ -495,7 +494,7 @@ Tüm hatalar standart format kullanır:
 | Endpoint | Limit |
 |---|---|
 | `/decisions/analyze` | 10 / dakika / kullanıcı |
-| `/decisions/answer-questions` | 30 / dakika / kullanıcı |
+| `/decisions/{decision_id}/answer` | 30 / dakika / kullanıcı |
 | Diğer GET endpoint'leri | 100 / dakika / kullanıcı |
 | Demo endpoint'leri | 60 / dakika / IP |
 

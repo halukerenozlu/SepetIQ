@@ -28,6 +28,7 @@ logger = logging.getLogger(__name__)
 # Pydantic şeması — Gemini structured output için (yalnızca ilk çalışmada)
 # ---------------------------------------------------------------------------
 
+
 class Question(BaseModel):
     id: str = Field(description="Question identifier: q1, q2, or q3")
     text: str = Field(description="Question text in Turkish")
@@ -140,6 +141,7 @@ def _get_chain():
 # İkinci çalışma: saf Python skorlama
 # ---------------------------------------------------------------------------
 
+
 def _score_need(
     user_answers: dict[str, Any],
     behavior_profile: dict[str, Any],
@@ -162,9 +164,9 @@ def _score_need(
     # Davranış profili modifiye
     impulsivity_score = int(behavior_profile.get("impulsivity_score") or 50)
     if impulsivity_score >= 70:
-        score -= 15   # dürtüsel alıcı → aciliyete güvenme
+        score -= 15  # dürtüsel alıcı → aciliyete güvenme
     elif impulsivity_score <= 30:
-        score += 10   # bilinçli alıcı → ihtiyacına güven
+        score += 10  # bilinçli alıcı → ihtiyacına güven
 
     # Mod modifiye
     if mode == "strict":
@@ -202,6 +204,7 @@ def _score_need(
 # ---------------------------------------------------------------------------
 # Ana ajan fonksiyonu
 # ---------------------------------------------------------------------------
+
 
 async def run(state: AgentState) -> dict:
     started = time.monotonic()
@@ -259,16 +262,18 @@ async def run(state: AgentState) -> dict:
 
         duration_ms = int((time.monotonic() - started) * 1000)
         traces = list(state.get("agent_traces") or [])
-        traces.append({
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "agent": "need_analyzer",
-            "status": "completed",
-            "duration_ms": duration_ms,
-            "input_summary": f"Döngü {cycle_iteration}, cevap sayısı: {len(user_answers)}",
-            "output_summary": "Sorular üretildi, cevap bekleniyor",
-            "key_findings": [q["text"][:50] for q in questions],
-            "triggered_actions": [],
-        })
+        traces.append(
+            {
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "agent": "need_analyzer",
+                "status": "completed",
+                "duration_ms": duration_ms,
+                "input_summary": f"Döngü {cycle_iteration}, cevap sayısı: {len(user_answers)}",
+                "output_summary": "Sorular üretildi, cevap bekleniyor",
+                "key_findings": [q["text"][:50] for q in questions],
+                "triggered_actions": [],
+            }
+        )
 
         return {"need_analyzer_output": result, "agent_traces": traces}
 
@@ -278,9 +283,7 @@ async def run(state: AgentState) -> dict:
     existing_output: dict[str, Any] = state.get("need_analyzer_output") or {}
     questions = existing_output.get("questions") or list(_FALLBACK_QUESTIONS)
 
-    need_score, need_level, scoring_rationale = _score_need(
-        user_answers, behavior_profile, mode
-    )
+    need_score, need_level, scoring_rationale = _score_need(user_answers, behavior_profile, mode)
 
     result = {
         "questions": questions,
@@ -292,15 +295,17 @@ async def run(state: AgentState) -> dict:
 
     duration_ms = int((time.monotonic() - started) * 1000)
     traces = list(state.get("agent_traces") or [])
-    traces.append({
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "agent": "need_analyzer",
-        "status": "completed",
-        "duration_ms": duration_ms,
-        "input_summary": f"Döngü {cycle_iteration}, cevap sayısı: {len(user_answers)}",
-        "output_summary": f"İhtiyaç skoru: {need_score}/100, seviye: {need_level}",
-        "key_findings": [scoring_rationale],
-        "triggered_actions": [],
-    })
+    traces.append(
+        {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "agent": "need_analyzer",
+            "status": "completed",
+            "duration_ms": duration_ms,
+            "input_summary": f"Döngü {cycle_iteration}, cevap sayısı: {len(user_answers)}",
+            "output_summary": f"İhtiyaç skoru: {need_score}/100, seviye: {need_level}",
+            "key_findings": [scoring_rationale],
+            "triggered_actions": [],
+        }
+    )
 
     return {"need_analyzer_output": result, "agent_traces": traces}

@@ -9,6 +9,7 @@
 **SepetIQ**, e-ticarette "sepete ekle" butonuna basmadan önce devreye giren agentic AI eklentisidir. Ürünü önermez, **sorgular**: "Bu ürünü gerçekten alıp almaman gerektiğini" üç skor (Product Fit, Review Risk, Need Score) ve döngüsel agent akışı (Cyclic Intelligence) ile analiz eder.
 
 **Tek cümlelik DNA:**
+
 > SepetIQ ne alacağını söylemez — almak istediğin ürünü gerçekten alıp almaman gerektiğini sorgular.
 
 **Felsefe:** Friction by Design — Bilinçli kararlar için kasıtlı sürtünme.
@@ -77,21 +78,21 @@
 
 ## 5. Tech Stack
 
-| Katman | Teknoloji | Sebep |
-|---|---|---|
-| Eklenti Frontend | React + TypeScript + Vite + @crxjs/vite-plugin | Bilinen stack, AI desteği yüksek |
-| Eklenti Styling | Tailwind CSS | Hızlı UI |
-| Companion Web | Next.js 15 + React + TypeScript | Server components, app router |
-| Web Styling | Tailwind + shadcn/ui | Hazır component'ler |
-| Backend | Python 3.12 + FastAPI + Pydantic | Async, type-safe, hızlı |
-| Agent Orchestration | LangGraph (Python) | Cyclic flow, görsel trace |
-| LLM | Gemini 2.5 Flash | Ücretsiz katman, hızlı |
-| Veritabanı | Supabase PostgreSQL | Auth + DB tek pakette |
-| Auth | Supabase Auth (Google OAuth) | 5 dakikada kurulum |
-| Frontend Deploy | Vercel | Next.js için optimal |
-| Backend Deploy | Railway | Python + Postgres, cold start az |
-| Paket Yön. (Py) | uv | pip'ten 10-100x hızlı |
-| Paket Yön. (JS) | pnpm | Vercel native, disk efficient |
+| Katman              | Teknoloji                                      | Sebep                            |
+| ------------------- | ---------------------------------------------- | -------------------------------- |
+| Eklenti Frontend    | React + TypeScript + Vite + @crxjs/vite-plugin | Bilinen stack, AI desteği yüksek |
+| Eklenti Styling     | Tailwind CSS                                   | Hızlı UI                         |
+| Companion Web       | Next.js 15 + React + TypeScript                | Server components, app router    |
+| Web Styling         | Tailwind + shadcn/ui                           | Hazır component'ler              |
+| Backend             | Python 3.12 + FastAPI + Pydantic               | Async, type-safe, hızlı          |
+| Agent Orchestration | LangGraph (Python)                             | Cyclic flow, görsel trace        |
+| LLM                 | Gemini 2.5 Flash                               | Ücretsiz katman, hızlı           |
+| Veritabanı          | Supabase PostgreSQL                            | Auth + DB tek pakette            |
+| Auth                | Supabase Auth (Google OAuth)                   | 5 dakikada kurulum               |
+| Frontend Deploy     | Vercel                                         | Next.js için optimal             |
+| Backend Deploy      | Railway                                        | Python + Postgres, cold start az |
+| Paket Yön. (Py)     | uv                                             | pip'ten 10-100x hızlı            |
+| Paket Yön. (JS)     | pnpm                                           | Vercel native, disk efficient    |
 
 ---
 
@@ -99,20 +100,21 @@
 
 Detaylı bilgi için ilgili dökümana git:
 
-| Doküman | İçerik | Kim İçin |
-|---|---|---|
-| [PRODUCT.md](./PRODUCT.md) | Vizyon, DNA, pitch, kullanıcı senaryoları | Pazarlama / Sunum hazırlığı |
-| [AGENT_SYSTEM.md](./AGENT_SYSTEM.md) | 7 LLM ajanı detayı, LangGraph akışı, prompt'lar | Backend geliştirme |
-| [SCORING.md](./SCORING.md) | 3 skor hesabı, karar matrisi, mod sistemi | Backend + Frontend |
-| [API.md](./API.md) | FastAPI endpoint'leri, request/response şemaları | Backend + Frontend entegrasyon |
-| [DATABASE.md](./DATABASE.md) | Supabase tabloları, ilişkiler, RLS politikaları | Backend + DB setup |
-| [EXTENSION.md](./EXTENSION.md) | Eklenti mimarisi, content scripts, popup | Eklenti geliştirme |
-| [WEB.md](./WEB.md) | Companion web sayfaları, component'ler | Web geliştirme |
-| [MOCKDATA.md](./MOCKDATA.md) | Demo ürünleri, yorumları, kullanıcı geçmişleri | Veri hazırlama |
-| [DEMO.md](./DEMO.md) | 5 dakikalık sunum senaryosu, demo akışı | Sunum prova |
-| [ROADMAP.md](./ROADMAP.md) | 7 günlük geliştirme planı | Proje yönetimi |
+| Doküman                              | İçerik                                           | Kim İçin                       |
+| ------------------------------------ | ------------------------------------------------ | ------------------------------ |
+| [PRODUCT.md](./PRODUCT.md)           | Vizyon, DNA, pitch, kullanıcı senaryoları        | Pazarlama / Sunum hazırlığı    |
+| [AGENT_SYSTEM.md](./AGENT_SYSTEM.md) | 7 LLM ajanı detayı, LangGraph akışı, prompt'lar  | Backend geliştirme             |
+| [SCORING.md](./SCORING.md)           | 3 skor hesabı, karar matrisi, mod sistemi        | Backend + Frontend             |
+| [API.md](./API.md)                   | FastAPI endpoint'leri, request/response şemaları | Backend + Frontend entegrasyon |
+| [DATABASE.md](./DATABASE.md)         | Supabase tabloları, ilişkiler, RLS politikaları  | Backend + DB setup             |
+| [EXTENSION.md](./EXTENSION.md)       | Eklenti mimarisi, content scripts, popup         | Eklenti geliştirme             |
+| [WEB.md](./WEB.md)                   | Companion web sayfaları, component'ler           | Web geliştirme                 |
+| [MOCKDATA.md](./MOCKDATA.md)         | Demo ürünleri, yorumları, kullanıcı geçmişleri   | Veri hazırlama                 |
+| [DEMO.md](./DEMO.md)                 | 5 dakikalık sunum senaryosu, demo akışı          | Sunum prova                    |
+| [ROADMAP.md](./ROADMAP.md)           | 7 günlük geliştirme planı                        | Proje yönetimi                 |
 
 > ⚠ **Adlandırma uyarısı:** Repo root'unda iki ayrı dosya bulunur:
+>
 > - `/CLAUDE.md` — Claude Code için birincil developer yönergesi
 > - `/AGENTS.md` — Codex/Cursor için ikincil developer + code review yönergesi
 >
@@ -125,21 +127,27 @@ Detaylı bilgi için ilgili dökümana git:
 AI ajanlara kod yazdırırken bu ilkelere uyulmasını sağla:
 
 ### 7.1 DNA İlkesi
+
 Kod tabanında **hiçbir yerde** "ürün öneri" mantığı olmayacak. SepetIQ sadece niyetli ürünü sorgular. Eğer bir feature "öneri" gibi durmaya başlıyorsa, **yanlış yoldasın.**
 
 ### 7.2 Açıklanabilirlik İlkesi
+
 Her karar agent trace ile açıklanabilir olmalı. "LLM şöyle dedi" yeterli değil. Hangi ajan, hangi veriyle, hangi sebeple bu skoru üretti — kullanıcı görebilmeli.
 
 ### 7.3 Structured Output İlkesi
+
 LLM çıktısı asla ham metin olarak kullanılmaz. Her LLM çağrısı Pydantic şemasına bağlı, Zod ile frontend'de doğrulanır.
 
 ### 7.4 Friction by Design İlkesi
+
 UX (User Experience — Kullanıcı Deneyimi) "kolaylaştırma" değil, "doğru zorlaştırma" prensibine göre tasarlanır. Disiplinli mod'da "al" demek gerçekten zor olmalı.
 
 ### 7.5 Veri Sahipliği İlkesi
+
 Kullanıcı verisi kullanıcıya aittir. Anonim agregat dışında hiçbir veri kullanıcı bilgisi olmadan kullanılmaz. Gemini ücretsiz katmanı veri kullanım sorunu vardır — production'da Tier 1'e geçilir.
 
 ### 7.6 Demo Önceliği İlkesi
+
 Hackathon süresinde her geliştirilen feature şu soruya cevap vermeli: "Bu, 5 dakikalık demo'da görünecek mi?" Cevap "hayır" ise, v2'ye ertelenir.
 
 ---
@@ -182,8 +190,8 @@ Hackathon teslimi için aşağıdaki tüm kriterler karşılanmalı:
 
 ## 10. Versiyon ve Güncellemeler
 
-| Versiyon | Tarih | Değişiklik |
-|---|---|---|
-| 0.1 | 2026-05-13 | İlk taslak |
+| Versiyon | Tarih      | Değişiklik |
+| -------- | ---------- | ---------- |
+| 0.1      | 2026-05-13 | İlk taslak |
 
 Bu döküman değiştiğinde, ilgili alt-dökümanları da güncelle. Tutarsızlık varsa, SPEC.md baskındır.

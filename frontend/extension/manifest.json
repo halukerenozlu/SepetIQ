@@ -1,18 +1,32 @@
 {
   "manifest_version": 3,
-  "name": "SepetIQ",
+  "name": "SepetIQ - Akıllı Alışveriş Asistanı",
   "version": "0.1.0",
-  "description": "AI destekli alışveriş asistanı",
-  "permissions": ["activeTab", "scripting", "storage"],
-  "host_permissions": ["https://*/*"],
-  "action": {
-    "default_popup": "index.html",
-    "default_title": "SepetIQ"
+  "description": "Satın alma kararlarınızı AI ile analiz eder",
+  "permissions": ["activeTab", "storage", "sidePanel"],
+  "host_permissions": [
+    "https://www.trendyol.com/*",
+    "https://trendyol.com/*",
+    "http://localhost:8000/*",
+    "http://localhost:3000/*"
+  ],
+  "background": {
+    "service_worker": "src/background/index.ts",
+    "type": "module"
   },
   "content_scripts": [
     {
-      "matches": ["https://*/*"],
-      "js": ["src/content/index.tsx"]
+      "matches": [
+        "https://www.trendyol.com/*/p-*",
+        "https://trendyol.com/*/p-*",
+        "http://localhost:3000/product/*"
+      ],
+      "js": ["src/content/index.ts"],
+      "css": [],
+      "run_at": "document_idle"
     }
-  ]
+  ],
+  "action": {
+    "default_title": "SepetIQ Analiz"
+  }
 }

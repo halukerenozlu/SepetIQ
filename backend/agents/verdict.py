@@ -18,6 +18,7 @@ from models.state import AgentState
 # Yardımcı fonksiyonlar
 # ---------------------------------------------------------------------------
 
+
 def _zero_scores() -> dict[str, int]:
     return {
         "product_score": 0,
@@ -44,24 +45,22 @@ def _build_result(
     budget_score: int = 0,
     behavior_score: int = 0,
 ) -> dict:
-    traces.append({
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "agent": "verdict",
-        "status": "completed",
-        "duration_ms": duration_ms,
-        "input_summary": (
-            f"4 agent skoru birleştirildi: "
-            f"ürün={product_score}, ihtiyaç={need_score}, "
-            f"bütçe={budget_score}, davranış={int(behavior_score)}"
-        ),
-        "output_summary": f"Karar: {verdict}, güven: {confidence_score}/100",
-        "key_findings": [
-            f"Toplam skor: {total_score:.1f}/100",
-            f"En zayıf boyut: {weakest}",
-            f"Aktif uyarılar: {', '.join(flags) if flags else 'yok'}",
-        ],
-        "triggered_actions": [],
-    })
+    traces.append(
+        {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "agent": "verdict",
+            "status": "completed",
+            "duration_ms": duration_ms,
+            "input_summary": (f"4 agent skoru birleştirildi: ürün={product_score}, ihtiyaç={need_score}, bütçe={budget_score}, davranış={int(behavior_score)}"),
+            "output_summary": f"Karar: {verdict}, güven: {confidence_score}/100",
+            "key_findings": [
+                f"Toplam skor: {total_score:.1f}/100",
+                f"En zayıf boyut: {weakest}",
+                f"Aktif uyarılar: {', '.join(flags) if flags else 'yok'}",
+            ],
+            "triggered_actions": [],
+        }
+    )
 
     return {
         "verdict_output": {
@@ -79,6 +78,7 @@ def _build_result(
 # ---------------------------------------------------------------------------
 # Ana ajan fonksiyonu
 # ---------------------------------------------------------------------------
+
 
 async def run(state: AgentState) -> dict:
     started = time.monotonic()
@@ -137,9 +137,7 @@ async def run(state: AgentState) -> dict:
 
     # budget_score
     financial_risk: str = budget_guard.get("financial_risk") or "unknown"
-    budget_score_map: dict[str, int] = {
-        "low": 90, "medium": 55, "high": 20, "unknown": 50
-    }
+    budget_score_map: dict[str, int] = {"low": 90, "medium": 55, "high": 20, "unknown": 50}
     budget_score: int = budget_score_map.get(financial_risk, 50)
 
     # behavior_score
@@ -151,18 +149,13 @@ async def run(state: AgentState) -> dict:
     # Adım 3: Ağırlıklı toplam skor
     # ------------------------------------------------------------------
     weights: dict[str, dict[str, float]] = {
-        "soft":     {"product": 0.30, "need": 0.20, "budget": 0.25, "behavior": 0.25},
+        "soft": {"product": 0.30, "need": 0.20, "budget": 0.25, "behavior": 0.25},
         "balanced": {"product": 0.25, "need": 0.30, "budget": 0.25, "behavior": 0.20},
-        "strict":   {"product": 0.20, "need": 0.35, "budget": 0.25, "behavior": 0.20},
+        "strict": {"product": 0.20, "need": 0.35, "budget": 0.25, "behavior": 0.20},
     }
     w = weights.get(mode, weights["balanced"])
 
-    total_score: float = (
-        product_score  * w["product"]  +
-        need_score     * w["need"]     +
-        budget_score   * w["budget"]   +
-        behavior_score * w["behavior"]
-    )
+    total_score: float = product_score * w["product"] + need_score * w["need"] + budget_score * w["budget"] + behavior_score * w["behavior"]
 
     # ------------------------------------------------------------------
     # Adım 4: Karar eşikleri
@@ -217,9 +210,9 @@ async def run(state: AgentState) -> dict:
     # Adım 7: Birincil neden ve önerilen eylem
     # ------------------------------------------------------------------
     scores_map: dict[str, int] = {
-        "product":  product_score,
-        "need":     need_score,
-        "budget":   budget_score,
+        "product": product_score,
+        "need": need_score,
+        "budget": budget_score,
         "behavior": behavior_score,
     }
 
@@ -233,18 +226,18 @@ async def run(state: AgentState) -> dict:
         weakest: str = "need"  # safe default
 
     reason_map: dict[str, str] = {
-        "product":  "Ürün yorumlarında önemli risk faktörleri tespit edildi.",
-        "need":     "Bu ürüne duyulan ihtiyaç yeterince güçlü görünmüyor.",
-        "budget":   "Finansal risk seviyesi bu satın alma için yüksek.",
+        "product": "Ürün yorumlarında önemli risk faktörleri tespit edildi.",
+        "need": "Bu ürüne duyulan ihtiyaç yeterince güçlü görünmüyor.",
+        "budget": "Finansal risk seviyesi bu satın alma için yüksek.",
         "behavior": "Kullanıcının alışveriş alışkanlıkları bu satın almayı desteklemiyor.",
     }
     primary_reason: str = reason_map[weakest]
 
     action_map: dict[str, str] = {
-        "buy":             "Satın alma kararınız sağlıklı görünüyor, devam edebilirsiniz.",
+        "buy": "Satın alma kararınız sağlıklı görünüyor, devam edebilirsiniz.",
         "conditional_buy": "Satın almadan önce ürün alternatiflerini karşılaştırmanızı öneririz.",
-        "wait":            "Bu satın almayı en az 24 saat ertelemenizi öneririz.",
-        "dont_buy":        "Bu satın almadan şimdilik kaçınmanızı öneririz.",
+        "wait": "Bu satın almayı en az 24 saat ertelemenizi öneririz.",
+        "dont_buy": "Bu satın almadan şimdilik kaçınmanızı öneririz.",
     }
     suggested_action: str = action_map[verdict]
 
@@ -252,9 +245,9 @@ async def run(state: AgentState) -> dict:
     # Çıktı
     # ------------------------------------------------------------------
     score_breakdown: dict[str, int] = {
-        "product_score":  product_score,
-        "need_score":     need_score,
-        "budget_score":   budget_score,
+        "product_score": product_score,
+        "need_score": need_score,
+        "budget_score": budget_score,
         "behavior_score": behavior_score,
     }
 

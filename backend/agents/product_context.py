@@ -27,21 +27,15 @@ load_dotenv(find_dotenv(usecwd=False))
 
 class ProductExtraction(BaseModel):
     name: str = Field(description="Full product name")
-    category: Literal["electronics", "cosmetics"] = Field(
-        description="Top-level category")
-    subcategory: str = Field(
-        description="Specific product type, e.g. 'smartphone'")
+    category: Literal["electronics", "cosmetics"] = Field(description="Top-level category")
+    subcategory: str = Field(description="Specific product type, e.g. 'smartphone'")
     price: float = Field(description="Numeric price in TL, 0 if not found")
     brand: str = Field(description="Brand name")
-    specs: dict[str, str] = Field(
-        description="Key technical specs as key-value pairs")
+    specs: dict[str, str] = Field(description="Key technical specs as key-value pairs")
     description: str = Field(description="1-2 sentence product summary")
 
 
-_PROMPT = (
-    "Extract product information from this Turkish e-commerce page.\n\n"
-    "Page content:\n{raw_content}"
-)
+_PROMPT = "Extract product information from this Turkish e-commerce page.\n\nPage content:\n{raw_content}"
 
 # Lazy-initialized at first call so missing API key doesn't break imports
 _structured = None
@@ -50,15 +44,12 @@ _structured = None
 def _get_structured():
     global _structured
     if _structured is None:
-        _structured = ChatGoogleGenerativeAI(model="gemini-1.5-flash").with_structured_output(
-            ProductExtraction
-        )
+        _structured = ChatGoogleGenerativeAI(model="gemini-1.5-flash").with_structured_output(ProductExtraction)
     return _structured
 
 
 def _strip_html(html: str) -> str:
-    text = re.sub(r"<(script|style)[^>]*>.*?</\1>",
-                  "", html, flags=re.DOTALL | re.IGNORECASE)
+    text = re.sub(r"<(script|style)[^>]*>.*?</\1>", "", html, flags=re.DOTALL | re.IGNORECASE)
     text = re.sub(r"<[^>]+>", " ", text)
     return re.sub(r"\s+", " ", text).strip()[:3000]
 
@@ -75,6 +66,42 @@ def _price_segment(price: float) -> str:
 
 async def run(state: AgentState) -> dict:
     started = time.monotonic()
+
+    # ── Fast path ────────────────────────────────────────────────────────────
+    # If the router already pre-populated product_context_output (because the
+    # extension sent scraped product data), skip HTTP fetch + Gemini entirely.
+    if state.get("product_context_output") is not None:
+        name = state.get("product_name") or "Unknown Product"
+        price = state.get("product_price") or 0.0
+        pco: dict = state["product_context_output"]  # type: ignore[assignment]
+
+        duration_ms = int((time.monotonic() - started) * 1000)
+        traces = list(state.get("agent_traces") or [])
+        traces.append(
+            {
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "agent": "product_context",
+                "duration_ms": duration_ms,
+                "status": "completed",
+                "input_summary": f"prefilled:{(state.get('product_url') or '')[:80]}",
+                "output_summary": f"{name} — {price} TL ({pco.get('price_segment', '?')})",
+                "key_findings": pco.get("key_features", [])[:3] or [name],
+            }
+        )
+        return {
+            "product_name": name,
+            "product_category": state.get("product_category") or "electronics",
+            "product_subcategory": state.get("product_subcategory") or "",
+            "product_price": price,
+            "product_brand": state.get("product_brand") or "",
+            "product_specs": dict(state.get("product_specs") or {}),
+            "product_description": state.get("product_description") or "",
+            "product_context_output": pco,
+            "agent_traces": traces,
+            "product_reviews": [],
+        }
+
+    # ── Normal path: HTTP fetch + Gemini ─────────────────────────────────────
     url = state.get("product_url") or ""
 
     raw_content = ""
@@ -92,12 +119,10 @@ async def run(state: AgentState) -> dict:
         except Exception:
             pass
 
-    name = extracted.name if extracted else (
-        state.get("product_name") or "Unknown Product")
+    name = extracted.name if extracted else (state.get("product_name") or "Unknown Product")
     category = extracted.category if extracted else "electronics"
     subcategory = extracted.subcategory if extracted else ""
-    price = extracted.price if extracted else (
-        state.get("product_price") or 0.0)
+    price = extracted.price if extracted else (state.get("product_price") or 0.0)
     brand = extracted.brand if extracted else ""
     specs = extracted.specs if extracted else {}
     description = extracted.description if extracted else ""
@@ -113,15 +138,17 @@ async def run(state: AgentState) -> dict:
 
     duration_ms = int((time.monotonic() - started) * 1000)
     traces = list(state.get("agent_traces") or [])
-    traces.append({
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "agent": "product_context",
-        "duration_ms": duration_ms,
-        "status": "completed",
-        "input_summary": url[:80],
-        "output_summary": f"{name} — {price} TL ({product_context_output['price_segment']})",
-        "key_findings": product_context_output["key_features"][:3] or [name],
-    })
+    traces.append(
+        {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "agent": "product_context",
+            "duration_ms": duration_ms,
+            "status": "completed",
+            "input_summary": url[:80],
+            "output_summary": f"{name} — {price} TL ({product_context_output['price_segment']})",
+            "key_findings": product_context_output["key_features"][:3] or [name],
+        }
+    )
 
     result = {
         "product_name": name,
@@ -136,8 +163,6 @@ async def run(state: AgentState) -> dict:
     }
 
     # Write reviews to state so review_risk can read them
-    result["product_reviews"] = result.get(
-        "product_context_output", {}
-    ).get("reviews", [])
+    result["product_reviews"] = result.get("product_context_output", {}).get("reviews", [])
 
     return result

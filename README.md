@@ -12,11 +12,11 @@ SepetIQ is an **agentic AI browser extension** that activates on e-commerce page
 
 ### 3 Scores
 
-| Score | Meaning |
-|-------|---------|
+| Score                   | Meaning                                        |
+| ----------------------- | ---------------------------------------------- |
 | **Product Fit** (0-100) | Does the product technically match your needs? |
 | **Review Risk** (0-100) | Are the reviews trustworthy? (High = low risk) |
-| **Need Score** (0-100) | Do you actually need this product? |
+| **Need Score** (0-100)  | Do you actually need this product?             |
 
 ### 5 Verdicts
 
@@ -73,14 +73,14 @@ Product Context → Review Risk → Behavior Profile
 
 ## Tech Stack
 
-| Layer | Technology | Package Manager |
-|-------|-----------|-----------------|
-| Backend | Python 3.12, FastAPI, LangGraph, Pydantic V2, Supabase | `uv` |
-| Web | Next.js 15, React 19, TypeScript, Tailwind, shadcn/ui | `pnpm` |
-| Extension | Vite, React, TypeScript, @crxjs/vite-plugin | `pnpm` |
-| LLM | Gemini 2.5 Flash | — |
-| Auth | Supabase Auth (Google OAuth) | — |
-| Deploy | Backend: Railway · Web: Vercel | — |
+| Layer     | Technology                                             | Package Manager |
+| --------- | ------------------------------------------------------ | --------------- |
+| Backend   | Python 3.12, FastAPI, LangGraph, Pydantic V2, Supabase | `uv`            |
+| Web       | Next.js 15, React 19, TypeScript, Tailwind, shadcn/ui  | `pnpm`          |
+| Extension | Vite, React, TypeScript, @crxjs/vite-plugin            | `pnpm`          |
+| LLM       | Gemini 2.5 Flash                                       | —               |
+| Auth      | Supabase Auth (Google OAuth)                           | —               |
+| Deploy    | Backend: Railway · Web: Vercel                         | —               |
 
 ---
 
@@ -128,24 +128,24 @@ pnpm dev
 
 ## Documentation
 
-| Document | Content |
-|----------|---------|
-| [SPEC.md](docs/SPEC.md) | Master specification — read this first |
-| [PRODUCT.md](docs/PRODUCT.md) | Vision, DNA, pitch, user personas |
-| [AGENT_SYSTEM.md](docs/AGENT_SYSTEM.md) | 7 LLM agents, LangGraph flow, prompts |
-| [SCORING.md](docs/SCORING.md) | 3 score calculation, decision matrix, modes |
-| [API.md](docs/API.md) | FastAPI endpoints, request/response schemas |
-| [DATABASE.md](docs/DATABASE.md) | Supabase tables, RLS policies |
-| [EXTENSION.md](docs/EXTENSION.md) | Extension architecture, content scripts |
-| [WEB.md](docs/WEB.md) | Companion web pages, components |
-| [DEMO.md](docs/DEMO.md) | 5-minute pitch scenario |
-| [ROADMAP.md](docs/ROADMAP.md) | 7-day development plan |
-| [ENV.md](docs/ENV.md) | Environment variables |
+| Document                                | Content                                     |
+| --------------------------------------- | ------------------------------------------- |
+| [SPEC.md](docs/SPEC.md)                 | Master specification — read this first      |
+| [PRODUCT.md](docs/PRODUCT.md)           | Vision, DNA, pitch, user personas           |
+| [AGENT_SYSTEM.md](docs/AGENT_SYSTEM.md) | 7 LLM agents, LangGraph flow, prompts       |
+| [SCORING.md](docs/SCORING.md)           | 3 score calculation, decision matrix, modes |
+| [API.md](docs/API.md)                   | FastAPI endpoints, request/response schemas |
+| [DATABASE.md](docs/DATABASE.md)         | Supabase tables, RLS policies               |
+| [EXTENSION.md](docs/EXTENSION.md)       | Extension architecture, content scripts     |
+| [WEB.md](docs/WEB.md)                   | Companion web pages, components             |
+| [DEMO.md](docs/DEMO.md)                 | 5-minute pitch scenario                     |
+| [ROADMAP.md](docs/ROADMAP.md)           | 7-day development plan                      |
+| [ENV.md](docs/ENV.md)                   | Environment variables                       |
 
 ---
 
 ## Hackathon
 
-Built for SHACKATHON'26.
+Built for BTK Academy, Google & Girvak Hackathon 2026.
 
 **Philosophy:** Friction by Design — intentional friction for conscious decisions.

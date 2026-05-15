@@ -22,7 +22,7 @@ load_dotenv(find_dotenv(usecwd=False))
 logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
-# Lazy-initialized LLM — sadece düz metin (summary cümle) için
+# Lazy-initialized LLM — only for plain-text summary sentence
 # ---------------------------------------------------------------------------
 
 _llm = None
@@ -36,7 +36,7 @@ def _get_llm() -> ChatGoogleGenerativeAI:
 
 
 # ---------------------------------------------------------------------------
-# Prompt şablonları
+# Prompt templates
 # ---------------------------------------------------------------------------
 
 _SYSTEM_PROMPT = (
@@ -78,8 +78,9 @@ _FALLBACK_OUTPUT: dict[str, Any] = {
 
 
 # ---------------------------------------------------------------------------
-# Saf Python hesaplamaları
+# Pure-Python computations
 # ---------------------------------------------------------------------------
+
 
 def _compute_fields(
     past_purchases: list[dict[str, Any]],
@@ -103,7 +104,7 @@ def _compute_fields(
     # return_rate
     return_rate = sum(1 for p in past_purchases if p.get("was_returned")) / n
 
-    # similar_past_purchase (son 6 ay)
+    # similar_past_purchase (last 6 months)
     six_months_ago = datetime.now(timezone.utc) - timedelta(days=180)
     similar_past_purchase = False
     for p in past_purchases:
@@ -112,7 +113,7 @@ def _compute_fields(
         raw_date = p.get("purchased_at") or p.get("purchase_date") or ""
         try:
             dt = datetime.fromisoformat(raw_date)
-            # timezone-naive ise UTC varsay
+            # treat timezone-naive as UTC
             if dt.tzinfo is None:
                 dt = dt.replace(tzinfo=timezone.utc)
             if dt > six_months_ago:
@@ -174,8 +175,9 @@ def _compute_fields(
 
 
 # ---------------------------------------------------------------------------
-# Ana ajan fonksiyonu
+# Main agent function
 # ---------------------------------------------------------------------------
+
 
 async def run(state: AgentState) -> dict:
     started = time.monotonic()
@@ -186,26 +188,28 @@ async def run(state: AgentState) -> dict:
     current_category: str = state.get("product_category") or "electronics"
     current_price: float = state.get("product_price") or 0.0
 
-    # Geçmiş yoksa fallback döndür
+    # Return fallback if no purchase history
     if not past_purchases:
         duration_ms = int((time.monotonic() - started) * 1000)
         traces = list(state.get("agent_traces") or [])
-        traces.append({
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "agent": "behavior_profile",
-            "status": "completed",
-            "duration_ms": duration_ms,
-            "input_summary": "0 geçmiş alışveriş analiz edildi",
-            "output_summary": "Profil: unknown, dürtüsellik skoru: 50/100",
-            "key_findings": [],
-            "triggered_actions": [],
-        })
+        traces.append(
+            {
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "agent": "behavior_profile",
+                "status": "completed",
+                "duration_ms": duration_ms,
+                "input_summary": "0 geçmiş alışveriş analiz edildi",
+                "output_summary": "Profil: unknown, dürtüsellik skoru: 50/100",
+                "key_findings": [],
+                "triggered_actions": [],
+            }
+        )
         return {
             "behavior_profile_output": dict(_FALLBACK_OUTPUT),
             "agent_traces": traces,
         }
 
-    # Sayısal alanları Python'da hesapla
+    # Compute numeric fields in Python
     fields = _compute_fields(past_purchases, current_category, current_price, mode)
     impulsivity_score = fields["impulsivity_score"]
     category_loyalty = fields["category_loyalty"]
@@ -215,7 +219,7 @@ async def run(state: AgentState) -> dict:
     profile_tag = fields["profile_tag"]
     similar_past_purchase = fields["similar_past_purchase"]
 
-    # Gemini'ye yalnızca Türkçe özet cümle ürettir
+    # Ask Gemini to produce a Turkish summary sentence only
     profile_summary = "Kullanıcının alışveriş geçmişi analiz edildi."
     try:
         user_prompt = _USER_PROMPT_TEMPLATE.format(
@@ -255,19 +259,21 @@ async def run(state: AgentState) -> dict:
 
     duration_ms = int((time.monotonic() - started) * 1000)
     traces = list(state.get("agent_traces") or [])
-    traces.append({
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "agent": "behavior_profile",
-        "status": "completed",
-        "duration_ms": duration_ms,
-        "input_summary": f"{len(past_purchases)} geçmiş alışveriş analiz edildi",
-        "output_summary": f"Profil: {profile_tag}, dürtüsellik skoru: {impulsivity_score}/100",
-        "key_findings": [
-            f"Kategori sadakati: {category_loyalty:.0%}",
-            f"İade oranı: {return_rate:.0%}",
-            f"Fiyat oranı: {current_price_ratio:.1f}x ortalama",
-        ],
-        "triggered_actions": [],
-    })
+    traces.append(
+        {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "agent": "behavior_profile",
+            "status": "completed",
+            "duration_ms": duration_ms,
+            "input_summary": f"{len(past_purchases)} geçmiş alışveriş analiz edildi",
+            "output_summary": f"Profil: {profile_tag}, dürtüsellik skoru: {impulsivity_score}/100",
+            "key_findings": [
+                f"Kategori sadakati: {category_loyalty:.0%}",
+                f"İade oranı: {return_rate:.0%}",
+                f"Fiyat oranı: {current_price_ratio:.1f}x ortalama",
+            ],
+            "triggered_actions": [],
+        }
+    )
 
     return {"behavior_profile_output": result, "agent_traces": traces}

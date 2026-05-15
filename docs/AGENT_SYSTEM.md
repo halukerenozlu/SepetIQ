@@ -11,6 +11,7 @@
 SepetIQ'nun agent sistemi **döngüsel (cyclic)** bir graph yapısıdır — doğrusal değil. Yani ajanlar sırayla A→B→C→D çalışmaz; bir ajan başka bir ajanı tetikleyebilir, geri besleme döngüsü oluşur.
 
 **Neden bu önemli?**
+
 - Doğrusal akış = sıralı LLM çağrıları → ChatGPT pipeline
 - Döngüsel akış = ajanlar arası muhakeme → gerçek agentic sistem
 
@@ -20,15 +21,15 @@ Bu, hackathon'da "Agentic Yapılar" puanını (10 puan) ve "Teknik Puan"ı (20 p
 
 ## 2. 7 Ajan — Özet Tablosu
 
-| # | Ajan | Görev | Çıktı |
-|---|---|---|---|
-| 1 | Product Context Agent | Ürün bilgisini yapılandırır | Structured ProductInfo |
-| 2 | Review Risk Analyzer | Yorumlardan risk/güven çıkarır | ReviewRiskScore + RiskFactors |
-| 3 | Behavior Profile Agent | Kullanıcı davranış profilini belirler | BehaviorProfile |
-| 4 | Need Analyzer Agent | İhtiyacı sorgular, kullanıcıya soru üretir | NeedQuestions + Context |
-| 5 | Need Check Agent | Need Score üretir | NeedScore + Reasoning |
-| 6 | Decision Agent | 3 skoru birleştirip karar verir | Decision (Al/Bekle/Alma) |
-| 7 | Tone Adapter Agent | Moda göre dilini ayarlar | FinalMessage |
+| #   | Ajan                   | Görev                                      | Çıktı                         |
+| --- | ---------------------- | ------------------------------------------ | ----------------------------- |
+| 1   | Product Context Agent  | Ürün bilgisini yapılandırır                | Structured ProductInfo        |
+| 2   | Review Risk Analyzer   | Yorumlardan risk/güven çıkarır             | ReviewRiskScore + RiskFactors |
+| 3   | Behavior Profile Agent | Kullanıcı davranış profilini belirler      | BehaviorProfile               |
+| 4   | Need Analyzer Agent    | İhtiyacı sorgular, kullanıcıya soru üretir | NeedQuestions + Context       |
+| 5   | Need Check Agent       | Need Score üretir                          | NeedScore + Reasoning         |
+| 6   | Decision Agent         | 3 skoru birleştirip karar verir            | Decision (Al/Bekle/Alma)      |
+| 7   | Tone Adapter Agent     | Moda göre dilini ayarlar                   | FinalMessage                  |
 
 ---
 
@@ -101,6 +102,7 @@ Bu, hackathon'da "Agentic Yapılar" puanını (10 puan) ve "Teknik Puan"ı (20 p
 Klasik akış: Review Risk düşer → Need Check yapılır → Karar verilir.
 
 **Cyclic akış:** Review Risk Analyzer, ürünün kritik bir riskini (örn. "Kullanıcıların %20'si pil ömründen şikâyetçi") tespit ederse:
+
 1. **Need Analyzer'a sinyal gönderir** ("Bu riskle ilgili kullanıcıya ek soru sorul")
 2. Need Analyzer kullanıcıya **dinamik bir soru** üretir ("Bu ürünü günlük 8+ saat kullanacak mısın? Pil ömrü senin için kritik mi?")
 3. Cevap geldikten sonra Need Check Agent **yeniden** çalışır
@@ -117,6 +119,7 @@ Bu döngüsel akış SepetIQ'yu klasik bir LLM wrapper'dan ayırır.
 **Amaç:** Ürün sayfasından gelen ham veriyi yapılandırır.
 
 **Girdi:**
+
 ```python
 class ProductContextInput(BaseModel):
     product_name: str
@@ -128,6 +131,7 @@ class ProductContextInput(BaseModel):
 ```
 
 **Çıktı:**
+
 ```python
 class ProductContextOutput(BaseModel):
     structured_name: str  # Temizlenmiş ürün ismi
@@ -138,6 +142,7 @@ class ProductContextOutput(BaseModel):
 ```
 
 **Prompt Şablonu:**
+
 ```
 Sen bir ürün analisti ajansın. Aşağıdaki ürün bilgisini analiz et:
 
@@ -164,6 +169,7 @@ JSON formatında dön. Format: {ProductContextOutput şeması}
 **Amaç:** Yorumlardan olumlu yönleri, olumsuz yönleri ve riskleri çıkarır.
 
 **Girdi:**
+
 ```python
 class ReviewRiskInput(BaseModel):
     product_id: str
@@ -177,6 +183,7 @@ class Review(BaseModel):
 ```
 
 **Çıktı:**
+
 ```python
 class ReviewRiskOutput(BaseModel):
     confidence_score: int  # 0-100 (yüksek = düşük risk)
@@ -196,6 +203,7 @@ class RiskFactor(BaseModel):
 **Önemli:** `triggers_need_recheck=True` olan bir risk varsa, Need Analyzer döngüsü tetiklenir.
 
 **Prompt Şablonu:**
+
 ```
 Sen bir ürün yorumu analiz uzmanısın. Aşağıdaki yorumları analiz et:
 
@@ -222,6 +230,7 @@ JSON formatında dön. Format: {ReviewRiskOutput şeması}
 **Amaç:** Kullanıcının alışveriş davranış profilini belirler (geçmişe dayalı).
 
 **Girdi:**
+
 ```python
 class BehaviorProfileInput(BaseModel):
     user_id: str
@@ -240,6 +249,7 @@ class PastPurchase(BaseModel):
 ```
 
 **Çıktı:**
+
 ```python
 class BehaviorProfileOutput(BaseModel):
     profile_type: str  # "impulsive", "discount_driven", "controlled", "researcher"
@@ -260,6 +270,7 @@ class SimilarPurchase(BaseModel):
 Bu ajan, mevcut almak istediği ürünle geçmişteki **benzer** ürünleri eşleştirir. Eğer benzerlik yüksek ve geçmiş ürün az kullanılmışsa, **kullanıcıya bu hatırlatılır.**
 
 **Prompt Şablonu:**
+
 ```
 Sen bir alışveriş davranış analisti ajansın. Aşağıdaki kullanıcı profilini analiz et:
 
@@ -295,6 +306,7 @@ JSON formatında dön. Format: {BehaviorProfileOutput şeması}
 **Amaç:** Kullanıcıya sorulacak dinamik soruları üretir.
 
 **Girdi:**
+
 ```python
 class NeedAnalyzerInput(BaseModel):
     product_context: ProductContextOutput
@@ -304,6 +316,7 @@ class NeedAnalyzerInput(BaseModel):
 ```
 
 **Çıktı:**
+
 ```python
 class NeedAnalyzerOutput(BaseModel):
     questions: list[NeedQuestion]  # Maksimum 3 soru
@@ -318,10 +331,12 @@ class NeedQuestion(BaseModel):
 ```
 
 **Cyclic Flow:**
+
 - İlk çağrıda: 3 genel soru sor (ihtiyaç, sıklık, alternatif)
 - Eğer `is_recheck=True`: Risk faktörüne özgü ek 1-2 soru sor
 
 **Prompt Şablonu (İlk Çağrı):**
+
 ```
 Sen bir ihtiyaç analizi ajansın. Kullanıcıya soracak 3 soru üret.
 
@@ -340,6 +355,7 @@ JSON formatında dön: {NeedAnalyzerOutput şeması}
 ```
 
 **Prompt Şablonu (Recheck Çağrısı):**
+
 ```
 Bir risk tespit edildi: {risk_factor}
 
@@ -357,6 +373,7 @@ JSON formatında dön.
 **Amaç:** Need Score'u üretir (3 skor sisteminin en kritik olanı).
 
 **Girdi:**
+
 ```python
 class NeedCheckInput(BaseModel):
     product_context: ProductContextOutput
@@ -366,6 +383,7 @@ class NeedCheckInput(BaseModel):
 ```
 
 **Çıktı:**
+
 ```python
 class NeedCheckOutput(BaseModel):
     need_score: int  # 0-100
@@ -408,6 +426,7 @@ final_score = clamp(score, 0, 100)
 **Amaç:** 3 skoru birleştirip nihai kararı verir.
 
 **Girdi:**
+
 ```python
 class DecisionInput(BaseModel):
     product_fit_score: int  # Product Context Agent + heuristics
@@ -418,6 +437,7 @@ class DecisionInput(BaseModel):
 ```
 
 **Çıktı:**
+
 ```python
 class DecisionOutput(BaseModel):
     decision: Literal["buy", "conditional_buy", "wait", "dont_buy", "consider_alternative"]
@@ -429,15 +449,16 @@ class DecisionOutput(BaseModel):
 
 **Karar Matrisi (Mode = Balanced):**
 
-| Fit | Review | Need | Karar |
-|---|---|---|---|
-| ≥70 | ≥70 | ≥70 | Buy |
-| ≥60 | ≥60 | 50-69 | Conditional Buy |
-| ≥60 | ≥60 | 30-49 | Wait |
-| - | - | <30 | Don't Buy |
-| <40 | - | - | Consider Alternative |
+| Fit | Review | Need  | Karar                |
+| --- | ------ | ----- | -------------------- |
+| ≥70 | ≥70    | ≥70   | Buy                  |
+| ≥60 | ≥60    | 50-69 | Conditional Buy      |
+| ≥60 | ≥60    | 30-49 | Wait                 |
+| -   | -      | <30   | Don't Buy            |
+| <40 | -      | -     | Consider Alternative |
 
 **Mode Etkisi:**
+
 - `soft` mode: Tüm eşikleri -10 indir
 - `strict` mode: Tüm eşikleri +10 yükselt
 - `threshold_adjustment` ek olarak uygulanır
@@ -451,6 +472,7 @@ Detaylı matris için [SCORING.md](./SCORING.md)
 **Amaç:** Decision Agent'ın çıktısını kullanıcının seçtiği moda göre tonlar.
 
 **Girdi:**
+
 ```python
 class ToneAdapterInput(BaseModel):
     decision: DecisionOutput
@@ -459,6 +481,7 @@ class ToneAdapterInput(BaseModel):
 ```
 
 **Çıktı:**
+
 ```python
 class ToneAdapterOutput(BaseModel):
     headline: str  # Büyük başlık ("Bekle - 24 saat sonra tekrar değerlendir")
@@ -470,12 +493,15 @@ class ToneAdapterOutput(BaseModel):
 **Ton Örnekleri:**
 
 **Yumuşak Mod — "Wait" kararı:**
+
 > "Bu ürün ihtiyaçlarına oldukça uygun görünüyor, ama acele etmene gerek yok. Belki birkaç gün düşünüp tekrar bakmak istersin. Karar senin."
 
 **Dengeli Mod — "Wait" kararı:**
+
 > "Ürün uygunluğu iyi (78/100), ancak satın alma motivasyonun şu an indirim baskısı odaklı görünüyor. 24 saat beklemeni öneriyorum. Yarın hala istiyorsan, daha sağlam bir karar olur."
 
 **Disiplinli Mod — "Wait" kararı:**
+
 > "Disiplinli Mod aktif. Geç saatte (22:30), indirim sayfasından geliyorsun ve benzer bir saatin geçmişte kullanılmadan kaldı. Bu kararı bugün almıyoruz. Yarın aynı saatte tekrar değerlendir."
 
 **Önemli:** Disiplinli mod **suçlayıcı değil, saygılı ama net.**
@@ -493,7 +519,7 @@ class SepetIQState(TypedDict):
     product_context_input: ProductContextInput
     user_id: str
     selected_mode: str
-    
+
     # Intermediate states
     product_context: ProductContextOutput | None
     review_risk: ReviewRiskOutput | None
@@ -501,15 +527,15 @@ class SepetIQState(TypedDict):
     need_questions: NeedAnalyzerOutput | None
     user_answers: dict | None
     need_check: NeedCheckOutput | None
-    
+
     # Cyclic flow control
     cycle_count: int  # Max 2 cycles
     needs_recheck: bool
-    
+
     # Final output
     decision: DecisionOutput | None
     final_message: ToneAdapterOutput | None
-    
+
     # Trace
     agent_trace: list[dict]  # Her ajanın ne yaptığı
 
@@ -585,18 +611,19 @@ Frontend bu trace'i **gerçek zamanlı** olarak yan panelde göstermeli (streami
 
 ## 7. Performance Hedefleri
 
-| Ajan | Hedef Süre | Açıklama |
-|---|---|---|
-| Product Context | < 1.5s | Tek LLM çağrısı |
-| Review Risk | < 3s | Yorumlar çok ise daha uzun |
-| Behavior Profile | < 2s | Geçmiş kıyaslaması ağır |
-| Need Analyzer | < 1.5s | Soru üretimi |
-| Need Check | < 1.5s | Skor hesaplama |
-| Decision | < 0.5s | Logic-based, LLM minimal |
-| Tone Adapter | < 1.5s | Metin üretimi |
-| **Toplam (cyclic dahil)** | **< 12s** | Kullanıcı bekleyebilir |
+| Ajan                      | Hedef Süre | Açıklama                   |
+| ------------------------- | ---------- | -------------------------- |
+| Product Context           | < 1.5s     | Tek LLM çağrısı            |
+| Review Risk               | < 3s       | Yorumlar çok ise daha uzun |
+| Behavior Profile          | < 2s       | Geçmiş kıyaslaması ağır    |
+| Need Analyzer             | < 1.5s     | Soru üretimi               |
+| Need Check                | < 1.5s     | Skor hesaplama             |
+| Decision                  | < 0.5s     | Logic-based, LLM minimal   |
+| Tone Adapter              | < 1.5s     | Metin üretimi              |
+| **Toplam (cyclic dahil)** | **< 12s**  | Kullanıcı bekleyebilir     |
 
 **Optimizasyon stratejileri:**
+
 - Behavior Profile + Review Risk paralel çalıştır (asyncio.gather)
 - Decision Agent'ı LLM'siz yap (kurallı sistem)
 - Streaming response — kullanıcı trace'i akışta görsün
@@ -605,11 +632,11 @@ Frontend bu trace'i **gerçek zamanlı** olarak yan panelde göstermeli (streami
 
 ## 8. Hata Yönetimi
 
-| Hata | Davranış |
-|---|---|
-| LLM timeout | 1 retry, sonra fallback (varsayılan skor) |
-| Pydantic validation hatası | Retry with explicit format reminder |
-| Rate limit (429) | Exponential backoff, max 3 retry |
-| Tüm ajanlar başarısız | Demo mod: hardcoded karar göster |
+| Hata                       | Davranış                                  |
+| -------------------------- | ----------------------------------------- |
+| LLM timeout                | 1 retry, sonra fallback (varsayılan skor) |
+| Pydantic validation hatası | Retry with explicit format reminder       |
+| Rate limit (429)           | Exponential backoff, max 3 retry          |
+| Tüm ajanlar başarısız      | Demo mod: hardcoded karar göster          |
 
 **Demo Mod Fallback:** Eğer demo sırasında LLM çağrıları başarısız olursa, önceden hazırlanmış 3 senaryonun "kayıtlı" cevapları gösterilir. Jüri farkı anlamaz.

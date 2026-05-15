@@ -2,16 +2,40 @@ from __future__ import annotations
 
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
+
+
+class ScrapedProductInput(BaseModel):
+    """Product data scraped by the browser extension."""
+
+    url: str
+    product_id: str | None = None
+    name: str | None = None
+    price: float | None = None
+    currency: str = "TL"
+    rating: float | None = None
+    review_count: int | None = None
+    seller: str | None = None
+    category: str | None = None
+    image_url: str | None = None
+    specs: dict[str, str] = Field(default_factory=dict)
+    source: str = "extension"
 
 
 class DecisionRequest(BaseModel):
-    product_url: str = Field(..., description="URL of the product page")
-    user_id: str = Field(..., description="Authenticated user ID")
-    mode: Literal["soft", "balanced", "strict"] = Field(
-        default="balanced",
-        description="Analysis mode: soft / balanced / strict",
-    )
+    # Legacy: direct URL (curl/API testing)
+    product_url: str | None = None
+    # New: pre-scraped product from the extension (skips re-scraping)
+    product: ScrapedProductInput | None = None
+
+    user_id: str = "anonymous"
+    mode: Literal["soft", "balanced", "strict"] = "balanced"
+
+    @model_validator(mode="after")
+    def require_product_or_url(self) -> "DecisionRequest":
+        if self.product is None and self.product_url is None:
+            raise ValueError("Either 'product' or 'product_url' must be provided")
+        return self
 
 
 class AgentTrace(BaseModel):

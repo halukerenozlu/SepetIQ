@@ -27,6 +27,7 @@ logger = logging.getLogger(__name__)
 # Structured output şeması — Gemini'den alınan kısım
 # ---------------------------------------------------------------------------
 
+
 class ToneWriterMessage(BaseModel):
     headline: str = Field(description="Max 10 kelime, Türkçe, özlü başlık")
     body: str = Field(description="2-3 cümle, Türkçe, empatik açıklama")
@@ -43,9 +44,7 @@ _structured = None
 def _get_structured():
     global _structured
     if _structured is None:
-        _structured = ChatGoogleGenerativeAI(
-            model="gemini-2.0-flash"
-        ).with_structured_output(ToneWriterMessage)
+        _structured = ChatGoogleGenerativeAI(model="gemini-2.0-flash").with_structured_output(ToneWriterMessage)
     return _structured
 
 
@@ -101,11 +100,11 @@ _USER_PROMPT = (
     "Önerilen eylem: {suggested_action}\n\n"
     "Bu kullanıcı için kişiselleştirilmiş bir mesaj yaz. "
     "Tam olarak bu JSON'ı döndür:\n"
-    '{{\n'
+    "{{\n"
     '  "headline": "<max 10 kelime, Türkçe, çarpıcı>",\n'
     '  "body": "<2-3 cümle, Türkçe, empatik; ürün adını en az bir kez kullan>",\n'
     '  "suggested_action": "<Türkçe 1 eyleme dönük cümle>"\n'
-    '}}\n\n'
+    "}}\n\n"
     "Kurallar:\n"
     "- headline kararı açıkça yansıtmalı\n"
     "- body ürün adını en az bir kez içermeli\n"
@@ -120,6 +119,7 @@ _USER_PROMPT = (
 # Ana ajan fonksiyonu
 # ---------------------------------------------------------------------------
 
+
 async def run(state: AgentState) -> dict:
     started = time.monotonic()
 
@@ -133,21 +133,10 @@ async def run(state: AgentState) -> dict:
     confidence_score: int = int(verdict_output.get("confidence_score") or 50)
     primary_reason: str = verdict_output.get("primary_reason") or ""
     flags: list[str] = verdict_output.get("flags") or []
-    suggested_action_raw: str = (
-        verdict_output.get("suggested_action")
-        or "Daha fazla bilgi için ürünü karşılaştırın."
-    )
+    suggested_action_raw: str = verdict_output.get("suggested_action") or "Daha fazla bilgi için ürünü karşılaştırın."
 
-    product_name: str = (
-        product_context.get("structured_name")
-        or state.get("product_name")
-        or "Ürün"
-    )
-    category: str = (
-        product_context.get("category_normalized")
-        or state.get("product_category")
-        or ""
-    )
+    product_name: str = product_context.get("structured_name") or state.get("product_name") or "Ürün"
+    category: str = product_context.get("category_normalized") or state.get("product_category") or ""
     price: float = float(state.get("product_price") or 0.0)
 
     profile_tag: str = behavior_profile.get("profile_tag") or "unknown"
@@ -179,10 +168,12 @@ async def run(state: AgentState) -> dict:
             flags_str=flags_str,
             suggested_action=suggested_action_raw,
         )
-        result = await _get_structured().ainvoke([
-            ("system", system_msg),
-            ("human", user_msg),
-        ])
+        result = await _get_structured().ainvoke(
+            [
+                ("system", system_msg),
+                ("human", user_msg),
+            ]
+        )
     except Exception as e:
         logger.warning("Tone writer Gemini failed: %s", e)
 
@@ -197,21 +188,10 @@ async def run(state: AgentState) -> dict:
             "dont_buy": "Bu alışverişten şimdilik uzak dur.",
         }
         fallback_bodies = {
-            "buy": (
-                f"{product_name} için veriler olumlu. Güvenle devam edebilirsin."
-            ),
-            "conditional_buy": (
-                f"{product_name} için bazı çekinceler var. "
-                "Alternatifleri de değerlendirmeni öneririz."
-            ),
-            "wait": (
-                f"{product_name} için koşullar henüz tam uygun değil. "
-                "24 saat sonra tekrar değerlendir."
-            ),
-            "dont_buy": (
-                f"{product_name} için finansal veya ihtiyaç bazlı "
-                "önemli riskler tespit edildi."
-            ),
+            "buy": (f"{product_name} için veriler olumlu. Güvenle devam edebilirsin."),
+            "conditional_buy": (f"{product_name} için bazı çekinceler var. Alternatifleri de değerlendirmeni öneririz."),
+            "wait": (f"{product_name} için koşullar henüz tam uygun değil. 24 saat sonra tekrar değerlendir."),
+            "dont_buy": (f"{product_name} için finansal veya ihtiyaç bazlı önemli riskler tespit edildi."),
         }
         headline = fallback_headlines.get(verdict, "Karar değerlendiriliyor.")
         body = fallback_bodies.get(verdict, "Alışveriş verileriniz analiz edildi.")
@@ -233,20 +213,22 @@ async def run(state: AgentState) -> dict:
     }
 
     duration_ms = int((time.monotonic() - started) * 1000)
-    traces.append({
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "agent": "tone_writer",
-        "status": "completed",
-        "duration_ms": duration_ms,
-        "input_summary": f"Karar: {display_verdict}, ton: {tone}, mod: {mode}",
-        "output_summary": f"Başlık üretildi: {headline[:40]}...",
-        "key_findings": [
-            f"Kullanılan ton: {tone}",
-            f"Görünen karar: {display_verdict}",
-            f"Profil etkisi: {profile_tag}",
-        ],
-        "triggered_actions": [],
-    })
+    traces.append(
+        {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "agent": "tone_writer",
+            "status": "completed",
+            "duration_ms": duration_ms,
+            "input_summary": f"Karar: {display_verdict}, ton: {tone}, mod: {mode}",
+            "output_summary": f"Başlık üretildi: {headline[:40]}...",
+            "key_findings": [
+                f"Kullanılan ton: {tone}",
+                f"Görünen karar: {display_verdict}",
+                f"Profil etkisi: {profile_tag}",
+            ],
+            "triggered_actions": [],
+        }
+    )
 
     return {
         "tone_writer_output": tone_writer_output,

@@ -38,6 +38,7 @@ logger = logging.getLogger(__name__)
 # Node wrappers
 # ---------------------------------------------------------------------------
 
+
 async def product_context_node(state: AgentState) -> dict:
     t0 = time.time()
     result = await product_context.run(state)
@@ -85,13 +86,7 @@ async def need_analyzer_node(state: AgentState) -> dict:
 
 async def need_analyzer_second_pass_node(state: AgentState) -> dict:
     t0 = time.time()
-    # Simulate user answering — pipeline completion mode
-    state["cycle_iteration"] = 1
-    state["user_answers"] = {
-        "q1": "Haftada birkaç kez",
-        "q2": "Hayır",
-        "q3": "Bu ay",
-    }
+    # user_answers and cycle_iteration are injected via aupdate_state before resume
     result = await need_analyzer.run(state)
     logger.info("[TIMING] need_analyzer_second_pass: %.2fs", time.time() - t0)
     return result
@@ -115,6 +110,7 @@ async def tone_writer_node(state: AgentState) -> dict:
 # Cyclic flow — conditional edge function
 # ---------------------------------------------------------------------------
 
+
 def should_continue(state: AgentState) -> str:
     need_out = state.get("need_analyzer_output") or {}
     cycle = state.get("cycle_iteration") or 0
@@ -127,6 +123,7 @@ def should_continue(state: AgentState) -> str:
 # ---------------------------------------------------------------------------
 # Graph definition
 # ---------------------------------------------------------------------------
+
 
 def _build_graph() -> StateGraph:
     workflow = StateGraph(AgentState)
@@ -159,4 +156,8 @@ def _build_graph() -> StateGraph:
 
 
 checkpointer = MemorySaver()
-graph = _build_graph().compile(checkpointer=checkpointer)
+graph = _build_graph().compile(
+    checkpointer=checkpointer,
+    # Pause before second pass so the API can inject real user answers
+    interrupt_before=["need_analyzer_second_pass"],
+)

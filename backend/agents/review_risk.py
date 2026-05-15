@@ -27,6 +27,7 @@ logger = logging.getLogger(__name__)
 # Pydantic şemaları — Gemini structured output için
 # ---------------------------------------------------------------------------
 
+
 class RiskFactor(BaseModel):
     topic: str = Field(description="Risk topic category")
     severity: Literal["low", "medium", "high"] = Field(description="Severity level")
@@ -105,6 +106,7 @@ def _get_chain():
 # Yardımcı fonksiyonlar
 # ---------------------------------------------------------------------------
 
+
 def _confidence_from_count(count: int) -> int:
     if count == 0:
         return 0
@@ -145,9 +147,7 @@ def _select_reviews(reviews: list[dict[str, Any]]) -> list[dict[str, Any]]:
         add(i)
 
     # En son 10 negatif yorum
-    negative_indices = [
-        i for i, r in enumerate(reviews) if (r.get("rating") or 5) < 4
-    ]
+    negative_indices = [i for i, r in enumerate(reviews) if (r.get("rating") or 5) < 4]
     try:
         negative_indices.sort(key=lambda i: reviews[i].get("date") or "", reverse=True)
     except Exception:
@@ -184,6 +184,7 @@ def _fallback(summary: str, review_count: int = 0) -> dict[str, Any]:
 # Ana ajan fonksiyonu
 # ---------------------------------------------------------------------------
 
+
 async def run(state: AgentState) -> dict:
     started = time.monotonic()
 
@@ -196,16 +197,18 @@ async def run(state: AgentState) -> dict:
     if not reviews:
         duration_ms = int((time.monotonic() - started) * 1000)
         traces = list(state.get("agent_traces") or [])
-        traces.append({
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "agent": "review_risk",
-            "status": "completed",
-            "duration_ms": duration_ms,
-            "input_summary": "0 yorum analiz edildi",
-            "output_summary": "Risk skoru: 50/100, 0 risk faktörü",
-            "key_findings": [],
-            "triggered_actions": [],
-        })
+        traces.append(
+            {
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "agent": "review_risk",
+                "status": "completed",
+                "duration_ms": duration_ms,
+                "input_summary": "0 yorum analiz edildi",
+                "output_summary": "Risk skoru: 50/100, 0 risk faktörü",
+                "key_findings": [],
+                "triggered_actions": [],
+            }
+        )
         result = _fallback("Bu ürün için yorum bulunamadı.", review_count=0)
         return {"review_risk_output": result, "agent_traces": traces}
 
@@ -233,16 +236,18 @@ async def run(state: AgentState) -> dict:
     if extracted is None:
         duration_ms = int((time.monotonic() - started) * 1000)
         traces = list(state.get("agent_traces") or [])
-        traces.append({
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "agent": "review_risk",
-            "status": "failed",
-            "duration_ms": duration_ms,
-            "input_summary": f"{review_count} yorum analiz edildi",
-            "output_summary": "Gemini çağrısı başarısız, fallback kullanıldı",
-            "key_findings": [],
-            "triggered_actions": [],
-        })
+        traces.append(
+            {
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "agent": "review_risk",
+                "status": "failed",
+                "duration_ms": duration_ms,
+                "input_summary": f"{review_count} yorum analiz edildi",
+                "output_summary": "Gemini çağrısı başarısız, fallback kullanıldı",
+                "key_findings": [],
+                "triggered_actions": [],
+            }
+        )
         result = _fallback("Yorum analizi yapılamadı.", review_count=review_count)
         return {"review_risk_output": result, "agent_traces": traces}
 
@@ -274,15 +279,17 @@ async def run(state: AgentState) -> dict:
 
     duration_ms = int((time.monotonic() - started) * 1000)
     traces = list(state.get("agent_traces") or [])
-    traces.append({
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "agent": "review_risk",
-        "status": "completed",
-        "duration_ms": duration_ms,
-        "input_summary": f"{review_count} yorum analiz edildi",
-        "output_summary": f"Risk skoru: {result['risk_score']}/100, {len(risk_factors)} risk faktörü",
-        "key_findings": [f["topic"] + ": " + f["severity"] for f in risk_factors],
-        "triggered_actions": ["need_analyzer_recheck"] if triggers_need_recheck else [],
-    })
+    traces.append(
+        {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "agent": "review_risk",
+            "status": "completed",
+            "duration_ms": duration_ms,
+            "input_summary": f"{review_count} yorum analiz edildi",
+            "output_summary": f"Risk skoru: {result['risk_score']}/100, {len(risk_factors)} risk faktörü",
+            "key_findings": [f["topic"] + ": " + f["severity"] for f in risk_factors],
+            "triggered_actions": ["need_analyzer_recheck"] if triggers_need_recheck else [],
+        }
+    )
 
     return {"review_risk_output": result, "agent_traces": traces}
