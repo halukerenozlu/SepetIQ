@@ -46,14 +46,22 @@ async def product_context_node(state: AgentState) -> dict:
     return result
 
 
+async def _staggered_run(coro_func, state: AgentState, delay: float):
+    """Run an agent coroutine after a delay to avoid Gemini RPM limits."""
+    if delay > 0:
+        await asyncio.sleep(delay)
+    return await coro_func(state)
+
+
 async def parallel_analysis_node(state: AgentState) -> dict:
     t0 = time.time()
     base_trace_count = len(state.get("agent_traces") or [])
 
+    # Stagger Gemini calls: 0s, 2s, 4s to stay within 15 RPM free tier
     results = await asyncio.gather(
-        review_risk.run(state),
-        behavior_profile.run(state),
-        budget_guard.run(state),
+        _staggered_run(review_risk.run, state, 0),
+        _staggered_run(behavior_profile.run, state, 2),
+        _staggered_run(budget_guard.run, state, 4),
         return_exceptions=True,
     )
 

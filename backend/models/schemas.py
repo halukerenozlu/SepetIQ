@@ -5,20 +5,30 @@ from typing import Literal
 from pydantic import BaseModel, Field, model_validator
 
 
+class ScrapedReviewInput(BaseModel):
+    """Review data scraped by the browser extension."""
+
+    rating: int | None = Field(default=None, ge=0, le=5)
+    text: str = ""
+    date: str | None = None
+    verified_buyer: bool = False
+
+
 class ScrapedProductInput(BaseModel):
     """Product data scraped by the browser extension."""
 
     url: str
-    product_id: str | None = None
+    product_id: str | None = Field(default=None, alias="productId")
     name: str | None = None
     price: float | None = None
     currency: str = "TL"
     rating: float | None = None
-    review_count: int | None = None
+    review_count: int | None = Field(default=None, alias="reviewCount")
     seller: str | None = None
     category: str | None = None
-    image_url: str | None = None
+    image_url: str | None = Field(default=None, alias="imageUrl")
     specs: dict[str, str] = Field(default_factory=dict)
+    reviews: list[ScrapedReviewInput] = Field(default_factory=list)
     source: str = "extension"
 
 

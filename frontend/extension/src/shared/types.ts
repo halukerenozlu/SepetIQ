@@ -7,18 +7,29 @@
 /** Product data scraped from an e-commerce page. */
 export interface ScrapedProduct {
   url: string;
+  product_id: string;
   productId: string;
   name: string | null;
   price: number | null;
   currency: string;
   rating: number | null;
+  review_count: number | null;
   reviewCount: number | null;
   seller: string | null;
   category: string | null;
+  image_url: string | null;
   imageUrl: string | null;
   specs: Record<string, string>;
+  reviews: ScrapedReview[];
   scrapedAt: string; // ISO 8601 timestamp
   source: "trendyol" | "generic";
+}
+
+export interface ScrapedReview {
+  rating: number | null;
+  text: string;
+  date: string | null;
+  verified_buyer: boolean;
 }
 
 /** Backend analysis mode. */

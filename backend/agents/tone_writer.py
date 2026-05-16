@@ -149,33 +149,32 @@ async def run(state: AgentState) -> dict:
     # ------------------------------------------------------------------
     # Gemini çağrısı
     # ------------------------------------------------------------------
+    from utils.gemini_client import invoke_with_retry
+
     result: ToneWriterMessage | None = None
-    try:
-        system_msg = _SYSTEM_PROMPT.format(
-            tone=tone,
-            tone_guideline=_TONE_GUIDELINES[tone],
-        )
-        user_msg = _USER_PROMPT.format(
-            product_name=product_name,
-            category=category,
-            price=price,
-            display_verdict=display_verdict,
-            confidence_score=confidence_score,
-            primary_reason=primary_reason,
-            profile_tag=profile_tag,
-            impulsivity_score=impulsivity_score,
-            mode=mode,
-            flags_str=flags_str,
-            suggested_action=suggested_action_raw,
-        )
-        result = await _get_structured().ainvoke(
-            [
-                ("system", system_msg),
-                ("human", user_msg),
-            ]
-        )
-    except Exception as e:
-        logger.warning("Tone writer Gemini failed: %s", e)
+    system_msg = _SYSTEM_PROMPT.format(
+        tone=tone,
+        tone_guideline=_TONE_GUIDELINES[tone],
+    )
+    user_msg = _USER_PROMPT.format(
+        product_name=product_name,
+        category=category,
+        price=price,
+        display_verdict=display_verdict,
+        confidence_score=confidence_score,
+        primary_reason=primary_reason,
+        profile_tag=profile_tag,
+        impulsivity_score=impulsivity_score,
+        mode=mode,
+        flags_str=flags_str,
+        suggested_action=suggested_action_raw,
+    )
+    result = await invoke_with_retry(
+        _get_structured(),
+        [("system", system_msg), ("human", user_msg)],
+        fallback=None,
+        agent_name="tone_writer",
+    )
 
     # ------------------------------------------------------------------
     # Fallback — Gemini başarısız olursa

@@ -35,6 +35,7 @@ let status: AnalysisStatus = "idle";
 let questions: NeedQuestion[] = [];
 let decisionId: string | undefined;
 let mode: AnalysisMode = "balanced";
+const answeredDecisionIds = new Set<string>();
 
 function getActiveScraper() {
   const url = window.location.href;
@@ -108,6 +109,7 @@ function resetAnalysisState(): void {
 
 function handleAnswerSubmit(answers: Record<string, string>): void {
   if (!decisionId) return;
+  answeredDecisionIds.add(decisionId);
   questions = [];
   setPanelState("analyzing");
   chrome.runtime.sendMessage({
@@ -191,11 +193,18 @@ chrome.runtime.onMessage.addListener((rawMsg: unknown) => {
       status = "analyzing";
     } else if (eventType === "questions") {
       const payload = readObject(data);
+      const incomingDecisionId =
+        typeof payload.decision_id === "string" ? payload.decision_id : undefined;
+
+      if (incomingDecisionId && answeredDecisionIds.has(incomingDecisionId)) {
+        renderPanel();
+        return false;
+      }
+
       questions = Array.isArray(payload.questions)
         ? (payload.questions as NeedQuestion[])
         : [];
-      decisionId =
-        typeof payload.decision_id === "string" ? payload.decision_id : undefined;
+      decisionId = incomingDecisionId;
       status = "questions";
     } else if (eventType === "verdict" || eventType === "done") {
       status = "complete";
@@ -235,4 +244,3 @@ function readObject(value: unknown): Record<string, unknown> {
 }
 
 injectFab();
-

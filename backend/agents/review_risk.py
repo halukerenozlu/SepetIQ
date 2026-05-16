@@ -224,14 +224,18 @@ async def run(state: AgentState) -> dict:
     )
 
     extracted: ReviewRiskExtraction | None = None
-    try:
-        messages = [
-            ("system", _SYSTEM_PROMPT),
-            ("human", user_prompt),
-        ]
-        extracted = await _get_chain().ainvoke(messages)
-    except Exception as exc:
-        logger.error("review_risk: Gemini çağrısı başarısız: %s", exc)
+    from utils.gemini_client import invoke_with_retry
+
+    messages = [
+        ("system", _SYSTEM_PROMPT),
+        ("human", user_prompt),
+    ]
+    extracted = await invoke_with_retry(
+        _get_chain(),
+        messages,
+        fallback=None,
+        agent_name="review_risk",
+    )
 
     if extracted is None:
         duration_ms = int((time.monotonic() - started) * 1000)

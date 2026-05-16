@@ -98,7 +98,7 @@ async def run(state: AgentState) -> dict:
             "product_description": state.get("product_description") or "",
             "product_context_output": pco,
             "agent_traces": traces,
-            "product_reviews": [],
+            "product_reviews": list(state.get("product_reviews") or []),
         }
 
     # ── Normal path: HTTP fetch + Gemini ─────────────────────────────────────
@@ -114,10 +114,14 @@ async def run(state: AgentState) -> dict:
 
     extracted: ProductExtraction | None = None
     if raw_content:
-        try:
-            extracted = await _get_structured().ainvoke(_PROMPT.format(raw_content=raw_content))
-        except Exception:
-            pass
+        from utils.gemini_client import invoke_with_retry
+
+        extracted = await invoke_with_retry(
+            _get_structured(),
+            _PROMPT.format(raw_content=raw_content),
+            fallback=None,
+            agent_name="product_context",
+        )
 
     name = extracted.name if extracted else (state.get("product_name") or "Unknown Product")
     category = extracted.category if extracted else "electronics"

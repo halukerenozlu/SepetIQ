@@ -21,7 +21,10 @@ import type { ScrapedProduct } from "../../shared/types";
 
 export class TrendyolScraper extends BaseScraper {
   canHandle(url: string): boolean {
-    return url.includes("trendyol.com");
+    return (
+      url.includes("trendyol.com") ||
+      Boolean(document.querySelector(".pr-new-br, .prc-dsc, .merchant-text"))
+    );
   }
 
   scrape(): ScrapedProduct | null {
@@ -29,19 +32,23 @@ export class TrendyolScraper extends BaseScraper {
       return {
         url: window.location.href,
         productId: this.extractProductId(),
-        name:
-          this.safeQueryText("h1.pr-new-br") ??
-          this.safeQueryText(".pr-new-br span"),
+        product_id: this.extractProductId(),
+        name: this.extractProductName(),
         price: this.extractPrice(),
         currency: "TRY",
         rating: this.extractRating(),
         reviewCount: this.extractReviewCount(),
+        review_count: this.extractReviewCount(),
         seller: this.safeQueryText(".merchant-text"),
         category: this.extractCategory(),
         imageUrl:
           this.safeQueryAttr(".base-product-image img", "src") ??
           this.safeQueryAttr("picture source", "srcset"),
+        image_url:
+          this.safeQueryAttr(".base-product-image img", "src") ??
+          this.safeQueryAttr("picture source", "srcset"),
         specs: this.extractSpecs(),
+        reviews: this.extractReviews(),
         scrapedAt: new Date().toISOString(),
         source: "trendyol",
       };
@@ -54,8 +61,38 @@ export class TrendyolScraper extends BaseScraper {
 
   private extractProductId(): string {
     // URL pattern: /p-123456789
-    const match = window.location.pathname.match(/p-(\d+)/);
-    return match?.[1] ?? `trendyol_${Date.now()}`;
+    const trendyolMatch = window.location.pathname.match(/p-(\d+)/);
+    if (trendyolMatch?.[1]) return trendyolMatch[1];
+
+    // Local demo pattern: /product/2
+    const demoMatch = window.location.pathname.match(/\/product\/([^/?#]+)/);
+    return demoMatch?.[1] ?? `trendyol_${Date.now()}`;
+  }
+
+  private extractProductName(): string | null {
+    const heading = document.querySelector("h1.pr-new-br");
+    const seller = this.safeQueryText(".merchant-text");
+
+    if (!heading) {
+      return this.safeQueryText(".pr-new-br span");
+    }
+
+    const childTexts = Array.from(heading.childNodes)
+      .map((node) => node.textContent?.trim())
+      .filter((text): text is string => Boolean(text));
+
+    const combined = (childTexts.length > 1 ? childTexts.join(" ") : heading.textContent)
+      ?.replace(/\s+/g, " ")
+      .trim();
+
+    if (!combined) return null;
+
+    if (seller && combined.startsWith(seller)) {
+      const productName = combined.slice(seller.length).trim();
+      return productName ? `${seller} - ${productName}` : combined;
+    }
+
+    return combined;
   }
 
   private extractPrice(): number | null {
@@ -117,5 +154,38 @@ export class TrendyolScraper extends BaseScraper {
       if (key && value) specs[key] = value;
     });
     return specs;
+  }
+
+  private extractReviews() {
+    const reviewBlocks = document.querySelectorAll(
+      ".comment-card, [data-testid*='review'], .reviews .review, .border-b.pb-6",
+    );
+
+    return Array.from(reviewBlocks)
+      .slice(0, 15)
+      .map((item) => {
+        const text =
+          item.querySelector("p")?.textContent?.trim() ??
+          item.querySelector(".comment-text, [class*='comment']")?.textContent?.trim() ??
+          "";
+        const ratingText =
+          item.querySelector("[data-rating]")?.getAttribute("data-rating") ??
+          item.querySelector("[class*='star']")?.textContent ??
+          "";
+        const filledStars = (ratingText.match(/★/g) ?? []).length;
+        const rating = parseInt(ratingText, 10);
+
+        return {
+          rating: Number.isNaN(rating) ? (filledStars || null) : rating,
+          text,
+          date:
+            item.querySelector(".comment-date, [class*='date']")?.textContent?.trim() ??
+            null,
+          verified_buyer:
+            item.textContent?.toLocaleLowerCase("tr-TR").includes("satın aldığı") ??
+            false,
+        };
+      })
+      .filter((review) => review.text.length > 0);
   }
 }

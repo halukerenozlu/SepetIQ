@@ -91,6 +91,24 @@ def _price_segment(price: float) -> str:
     return "luxury"
 
 
+def _display_product_name(name: str | None, seller: str | None) -> str:
+    """Normalizes scraped names where seller and product were glued together."""
+    clean_name = " ".join((name or "").split())
+    clean_seller = " ".join((seller or "").split())
+
+    if not clean_name:
+        return "Unknown Product"
+    if not clean_seller or not clean_name.startswith(clean_seller):
+        return clean_name
+
+    remainder = clean_name[len(clean_seller) :].strip()
+    if not remainder:
+        return clean_name
+    if remainder.startswith(("-", "–", "—", "|")):
+        return f"{clean_seller} {remainder}"
+    return f"{clean_seller} - {remainder}"
+
+
 def _display_name(node_name: str) -> str:
     """Maps internal node names to display-friendly agent names."""
     return {
@@ -498,14 +516,24 @@ async def analyze(
         p = request_data.product
         price = p.price or 0.0
         specs = dict(p.specs)
+        product_name = _display_product_name(p.name, p.seller)
         initial_state.update(
             {
-                "product_name": p.name or "Unknown Product",
+                "product_name": product_name,
                 "product_category": p.category or "electronics",
                 "product_price": price,
                 "product_specs": specs,
+                "product_reviews": [
+                    {
+                        "rating": review.rating,
+                        "text": review.text,
+                        "date": review.date,
+                        "verified_buyer": review.verified_buyer,
+                    }
+                    for review in p.reviews
+                ],
                 "product_context_output": {
-                    "structured_name": p.name or "Unknown Product",
+                    "structured_name": product_name,
                     "category_normalized": p.category or "electronics",
                     "subcategory": "",
                     "price_segment": _price_segment(price),

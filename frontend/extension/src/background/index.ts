@@ -92,6 +92,10 @@ async function streamAnalysis(
   let response: Response;
 
   try {
+    console.info("[SepetIQ SW] POST /api/v1/decisions/analyze", {
+      apiBase,
+      tabId,
+    });
     response = await fetch(`${apiBase}/api/v1/decisions/analyze`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -147,18 +151,28 @@ async function streamAnalysis(
 // ─── Answer submission ────────────────────────────────────────────────────────
 
 async function submitAnswer(
+  tabId: number,
   apiBase: string,
   decisionId: string,
   answers: Record<string, string>,
 ): Promise<void> {
   try {
-    await fetch(`${apiBase}/api/v1/decisions/${decisionId}/answer`, {
+    const response = await fetch(`${apiBase}/api/v1/decisions/${decisionId}/answer`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ answers }),
     });
-  } catch {
-    // Fire and forget; SSE stream will reflect state
+    if (!response.ok) {
+      sendToTab(tabId, {
+        type: MSG.ANALYSIS_ERROR,
+        error: `HTTP ${response.status}: Cevaplar gönderilemedi`,
+      });
+    }
+  } catch (err) {
+    sendToTab(tabId, {
+      type: MSG.ANALYSIS_ERROR,
+      error: err instanceof Error ? err.message : "Cevaplar gönderilemedi",
+    });
   }
 }
 
@@ -174,6 +188,7 @@ function sendToTab(tabId: number, message: unknown): void {
 
 chrome.runtime.onMessage.addListener(
   (rawMsg: unknown, sender: chrome.runtime.MessageSender) => {
+    console.info("[SepetIQ SW] message received", rawMsg);
     const tabId = sender.tab?.id;
     if (!tabId) return false;
 
@@ -194,7 +209,7 @@ chrome.runtime.onMessage.addListener(
     if (message.type === MSG.ANSWER_SUBMIT) {
       const { decisionId, answers } = message;
       getApiBase().then((apiBase) => {
-        submitAnswer(apiBase, decisionId, answers);
+        submitAnswer(tabId, apiBase, decisionId, answers);
       });
       return false;
     }

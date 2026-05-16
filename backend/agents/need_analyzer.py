@@ -229,25 +229,30 @@ async def run(state: AgentState) -> dict:
         questions: list[dict[str, Any]] = []
         gemini_ok = False
 
-        try:
-            user_prompt = _USER_PROMPT_TEMPLATE.format(
-                product_name=product_name,
-                category=category,
-                price=price,
-                profile_tag=profile_tag,
-                impulsivity_score=impulsivity_score,
-                mode=mode,
-            )
-            messages = [
-                ("system", _SYSTEM_PROMPT),
-                ("human", user_prompt),
-            ]
-            extracted: QuestionsOutput = await _get_chain().ainvoke(messages)
+        from utils.gemini_client import invoke_with_retry
+
+        user_prompt = _USER_PROMPT_TEMPLATE.format(
+            product_name=product_name,
+            category=category,
+            price=price,
+            profile_tag=profile_tag,
+            impulsivity_score=impulsivity_score,
+            mode=mode,
+        )
+        messages = [
+            ("system", _SYSTEM_PROMPT),
+            ("human", user_prompt),
+        ]
+        extracted: QuestionsOutput | None = await invoke_with_retry(
+            _get_chain(),
+            messages,
+            fallback=None,
+            agent_name="need_analyzer",
+        )
+        if extracted is not None:
             questions = [q.model_dump() for q in (extracted.questions or [])]
             if len(questions) == 3:
                 gemini_ok = True
-        except Exception as exc:
-            logger.error("need_analyzer: Gemini soru üretimi başarısız: %s", exc)
 
         if not gemini_ok:
             questions = list(_FALLBACK_QUESTIONS)

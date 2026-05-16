@@ -51,10 +51,12 @@ export class GenericScraper extends BaseScraper {
   scrape(): ScrapedProduct | null {
     const jsonLd = this.tryJsonLd();
     const og = this.tryOpenGraph();
+    const productId = `generic_${Date.now()}`;
 
     return {
       url: window.location.href,
-      productId: `generic_${Date.now()}`,
+      productId,
+      product_id: productId,
       name:
         jsonLd?.name ??
         og?.name ??
@@ -64,12 +66,17 @@ export class GenericScraper extends BaseScraper {
       currency: jsonLd?.currency ?? og?.currency ?? "TRY",
       rating: jsonLd?.rating ?? null,
       reviewCount: jsonLd?.reviewCount ?? null,
+      review_count: jsonLd?.reviewCount ?? null,
       seller: null,
       category: null,
       imageUrl:
         og?.imageUrl ??
         this.safeQueryAttr('meta[property="og:image"]', "content"),
+      image_url:
+        og?.imageUrl ??
+        this.safeQueryAttr('meta[property="og:image"]', "content"),
       specs: {},
+      reviews: [],
       scrapedAt: new Date().toISOString(),
       source: "generic",
     };

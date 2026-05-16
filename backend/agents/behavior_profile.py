@@ -183,12 +183,14 @@ async def run(state: AgentState) -> dict:
     started = time.monotonic()
 
     past_purchases: list[dict[str, Any]] = state.get("past_purchases") or []
+    user_id: str = state.get("user_id") or ""
     mode: str = state.get("mode") or "balanced"
     product_name: str = state.get("product_name") or "Bilinmeyen Ürün"
     current_category: str = state.get("product_category") or "electronics"
     current_price: float = state.get("product_price") or 0.0
 
-    # Return fallback if no purchase history
+    # Skip entirely if no purchase history
+    _is_anonymous = not user_id or user_id.startswith("demo") or user_id == "anonymous"
     if not past_purchases:
         duration_ms = int((time.monotonic() - started) * 1000)
         traces = list(state.get("agent_traces") or [])
@@ -220,8 +222,11 @@ async def run(state: AgentState) -> dict:
     similar_past_purchase = fields["similar_past_purchase"]
 
     # Ask Gemini to produce a Turkish summary sentence only
+    # Skip Gemini for anonymous/demo users — save RPM quota
     profile_summary = "Kullanıcının alışveriş geçmişi analiz edildi."
-    try:
+    if not _is_anonymous:
+        from utils.gemini_client import invoke_with_retry
+
         user_prompt = _USER_PROMPT_TEMPLATE.format(
             purchase_count=len(past_purchases),
             category_loyalty_pct=f"{category_loyalty:.0%}",
@@ -238,12 +243,16 @@ async def run(state: AgentState) -> dict:
             ("system", _SYSTEM_PROMPT),
             ("human", user_prompt),
         ]
-        response = await _get_llm().ainvoke(messages)
-        summary_text = (response.content or "").strip()
-        if summary_text:
-            profile_summary = summary_text
-    except Exception as exc:
-        logger.error("behavior_profile: Gemini özet çağrısı başarısız: %s", exc)
+        response = await invoke_with_retry(
+            _get_llm(),
+            messages,
+            fallback=None,
+            agent_name="behavior_profile",
+        )
+        if response is not None:
+            summary_text = (response.content or "").strip()
+            if summary_text:
+                profile_summary = summary_text
 
     result: dict[str, Any] = {
         "impulsivity_score": impulsivity_score,
