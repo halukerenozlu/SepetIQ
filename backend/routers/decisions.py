@@ -54,6 +54,10 @@ async def _save_to_supabase(
     Saves a completed decision to Supabase decisions table.
     All errors are caught and logged — this must never interrupt the pipeline.
     """
+    if record.user_id == "anonymous":
+        logger.debug("Skipping Supabase decision save for anonymous user")
+        return
+
     try:
         total_duration_ms: int = sum(int(t.get("duration_ms") or 0) for t in traces if isinstance(t, dict))
         decision_row = {

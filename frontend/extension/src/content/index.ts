@@ -7,8 +7,7 @@
 
 import React from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { TrendyolScraper } from "./scraper/trendyol";
-import { GenericScraper } from "./scraper/generic";
+import { SCRAPERS } from "./scraper";
 import { DecisionPanel } from "../panel";
 import { MSG } from "../shared/messages";
 import type {
@@ -24,9 +23,10 @@ import type {
   SseEventMsg,
 } from "../shared/messages";
 
-const SCRAPERS = [new TrendyolScraper(), new GenericScraper()];
 const PANEL_HOST_ID = "sepetiq-panel-host";
 const FAB_HOST_ID = "sepetiq-fab-host";
+const DASHBOARD_ORIGIN = "http://localhost:3000";
+const EXTENSION_SESSION_MESSAGE = "SEPETIQ_SUPABASE_SESSION";
 
 let panelRoot: Root | null = null;
 let panelHost: HTMLElement | null = null;
@@ -40,6 +40,34 @@ const answeredDecisionIds = new Set<string>();
 function getActiveScraper() {
   const url = window.location.href;
   return SCRAPERS.find((scraper) => scraper.canHandle(url)) ?? null;
+}
+
+function installDashboardAuthBridge(): void {
+  window.addEventListener("message", (event: MessageEvent) => {
+    if (
+      window.location.origin !== DASHBOARD_ORIGIN ||
+      event.origin !== DASHBOARD_ORIGIN ||
+      event.source !== window
+    ) {
+      return;
+    }
+
+    const data = readObject(event.data);
+    if (data.type !== EXTENSION_SESSION_MESSAGE) return;
+
+    const userId = typeof data.userId === "string" ? data.userId : null;
+    const token = typeof data.accessToken === "string" ? data.accessToken : null;
+
+    if (userId && token) {
+      chrome.storage.local.set({
+        supabase_user_id: userId,
+        supabase_token: token,
+      });
+      return;
+    }
+
+    chrome.storage.local.remove(["supabase_user_id", "supabase_token"]);
+  });
 }
 
 function ensurePanelRoot(): void {
@@ -243,4 +271,8 @@ function readObject(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" ? (value as Record<string, unknown>) : {};
 }
 
-injectFab();
+installDashboardAuthBridge();
+
+if (getActiveScraper()) {
+  injectFab();
+}
