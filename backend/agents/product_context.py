@@ -28,14 +28,11 @@ load_dotenv(find_dotenv(usecwd=False))
 
 class ProductExtraction(BaseModel):
     name: str = Field(description="Full product name")
-    category: Literal["electronics", "cosmetics"] = Field(
-        description="Top-level category")
-    subcategory: str = Field(
-        description="Specific product type, e.g. 'smartphone'")
+    category: Literal["electronics", "cosmetics"] = Field(description="Top-level category")
+    subcategory: str = Field(description="Specific product type, e.g. 'smartphone'")
     price: float = Field(description="Numeric price in TL, 0 if not found")
     brand: str = Field(description="Brand name")
-    specs: dict[str, str] = Field(
-        description="Key technical specs as key-value pairs")
+    specs: dict[str, str] = Field(description="Key technical specs as key-value pairs")
     description: str = Field(description="1-2 sentence product summary")
 
 
@@ -48,14 +45,12 @@ _structured = None
 def _get_structured():
     global _structured
     if _structured is None:
-        _structured = ChatGoogleGenerativeAI(model=os.getenv(
-            "GEMINI_MODEL", "gemini-2.5-flash")).with_structured_output(ProductExtraction)
+        _structured = ChatGoogleGenerativeAI(model=os.getenv("GEMINI_MODEL", "gemini-2.5-flash")).with_structured_output(ProductExtraction)
     return _structured
 
 
 def _strip_html(html: str) -> str:
-    text = re.sub(r"<(script|style)[^>]*>.*?</\1>",
-                  "", html, flags=re.DOTALL | re.IGNORECASE)
+    text = re.sub(r"<(script|style)[^>]*>.*?</\1>", "", html, flags=re.DOTALL | re.IGNORECASE)
     text = re.sub(r"<[^>]+>", " ", text)
     return re.sub(r"\s+", " ", text).strip()[:3000]
 
@@ -129,12 +124,10 @@ async def run(state: AgentState) -> dict:
             agent_name="product_context",
         )
 
-    name = extracted.name if extracted else (
-        state.get("product_name") or "Unknown Product")
+    name = extracted.name if extracted else (state.get("product_name") or "Unknown Product")
     category = extracted.category if extracted else "electronics"
     subcategory = extracted.subcategory if extracted else ""
-    price = extracted.price if extracted else (
-        state.get("product_price") or 0.0)
+    price = extracted.price if extracted else (state.get("product_price") or 0.0)
     brand = extracted.brand if extracted else ""
     specs = extracted.specs if extracted else {}
     description = extracted.description if extracted else ""
@@ -175,7 +168,6 @@ async def run(state: AgentState) -> dict:
     }
 
     # Write reviews to state so review_risk can read them
-    result["product_reviews"] = result.get(
-        "product_context_output", {}).get("reviews", [])
+    result["product_reviews"] = result.get("product_context_output", {}).get("reviews", [])
 
     return result
