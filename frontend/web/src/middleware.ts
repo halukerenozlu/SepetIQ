@@ -38,6 +38,7 @@ export async function middleware(request: NextRequest) {
       return response;
     }
 
+    request.cookies.set(DEMO_COOKIE, demoUser);
     const response = NextResponse.next({ request });
     response.cookies.set(DEMO_COOKIE, demoUser, {
       path: '/',

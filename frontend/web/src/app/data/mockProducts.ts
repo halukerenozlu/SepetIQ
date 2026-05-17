@@ -112,5 +112,106 @@ export const mockProducts: Product[] = [
         text: "Hacmi 4 kişilik bir aile için biraz küçük kalabilir ama 2 kişi için ideal."
       }
     ]
+  },
+  {
+    id: "4",
+    name: "Apple Watch Series 9 41mm Gece Yarısı",
+    originalPrice: 16999.00,
+    discountedPrice: 14999.00,
+    rating: 4.6,
+    reviewCount: 892,
+    seller: "Apple Türkiye",
+    categories: ["Elektronik", "Akıllı Saat", "Apple Watch"],
+    imageUrl: "https://placehold.co/600x600/1a1a1a/white?text=Apple+Watch",
+    specs: [
+      { name: "Ekran", value: "41mm OLED" },
+      { name: "Batarya", value: "18 saat" },
+      { name: "Su direnci", value: "50m" },
+      { name: "GPS", value: "var" },
+      { name: "Chip", value: "S9" },
+      { name: "Renk", value: "Gece Yarısı" }
+    ],
+    reviews: [
+      {
+        author: "Ali Y.",
+        rating: 3,
+        date: "10 Mayıs 2024",
+        text: "18 saatte bitiyor, gece şarj etmeyi unutursanız sabah boş."
+      },
+      {
+        author: "Buse C.",
+        rating: 2,
+        date: "12 Mayıs 2024",
+        text: "Pil ömrü gerçekten kısa, her gece şarj etmek zorunda kalıyorsunuz."
+      },
+      {
+        author: "Deniz A.",
+        rating: 5,
+        date: "15 Mayıs 2024",
+        text: "Tasarım ve performansı harika. Uygulamalar çok hızlı çalışıyor."
+      },
+      {
+        author: "Cem K.",
+        rating: 4,
+        date: "18 Mayıs 2024",
+        text: "Sağlık takibi özellikleri çok başarılı, motivasyon sağlıyor."
+      },
+      {
+        author: "Elif B.",
+        rating: 4,
+        date: "20 Mayıs 2024",
+        text: "Bildirimler ve çağrılar için çok kullanışlı. Bileğimdeki küçük bir bilgisayar gibi."
+      }
+    ]
+  },
+  {
+    id: "5",
+    name: "La Mer Moisturizing Cream 60ml",
+    originalPrice: 14999.00,
+    discountedPrice: 14999.00,
+    rating: 4.8,
+    reviewCount: 234,
+    seller: "Sephora",
+    categories: ["Kozmetik", "Cilt Bakımı", "Nemlendirici"],
+    imageUrl: "https://placehold.co/600x600/c8a96e/white?text=La+Mer",
+    specs: [
+      { name: "İçerik", value: "60ml" },
+      { name: "Cilt tipi", value: "Tüm cilt tipleri" },
+      { name: "Kullanım", value: "Gece/Gündüz" },
+      { name: "Koku", value: "Hafif deniz" },
+      { name: "Paraben", value: "içermez" }
+    ],
+    reviews: [
+      {
+        author: "Gizem S.",
+        rating: 5,
+        date: "1 Nisan 2024",
+        text: "Cildime çok iyi geldi, nemlendirmesi harika. Parlaklık verdi."
+      },
+      {
+        author: "Ozan T.",
+        rating: 4,
+        date: "5 Nisan 2024",
+        text: "Çok pahalı olmasına rağmen etkisini gördüm. Ama bütçeyi zorluyor."
+      },
+      {
+        author: "Pınar E.",
+        rating: 5,
+        date: "10 Nisan 2024",
+        text: "Küçük bir miktar bile yeterli oluyor, uzun süre kullanılabiliyor."
+      },
+      {
+        author: "Barış G.",
+        rating: 3,
+        date: "15 Nisan 2024",
+        text: "Fiyatı çok yüksek, benzer etkiyi daha uygun fiyatlı alternatiflerle de alabilirsiniz."
+      },
+      {
+        author: "Serap M.",
+        rating: 4,
+        date: "20 Nisan 2024",
+        text: "Muhteşem bir ürün, cildimi ipeksi yaptı. Tek eksiği fiyatı."
+      }
+    ]
   }
 ];

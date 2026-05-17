@@ -64,7 +64,7 @@ export default function DashboardLayout({
           <div className="bg-amber-50 border-b border-amber-200 px-4 py-2 flex items-center justify-center gap-2">
             <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
             <p className="text-sm font-medium text-amber-800">
-              Demo modunda görüntülüyorsun ({demoUser})
+              Demo modundasın ({demoUser})
             </p>
           </div>
         )}

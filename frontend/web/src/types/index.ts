@@ -138,7 +138,7 @@ export interface AgentTrace {
  * MOCK TYPES — Demo için (DB'den bağımsız, flatten edilmiş)
  */
 
-export interface DashboardMockDecision {
+export interface DashboardDecision {
   id: string;
   user_id: string;
   product_name: string;
@@ -153,8 +153,11 @@ export interface DashboardMockDecision {
   product_score: number;
   total_score: number;
   is_cyclic_recheck: boolean;
+  total_duration_ms?: number;
   created_at: string;
 }
+
+export type DashboardMockDecision = DashboardDecision;
 
 /**
  * API & RESPONSE TYPES

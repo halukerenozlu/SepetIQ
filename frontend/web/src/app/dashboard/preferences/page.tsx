@@ -1,33 +1,40 @@
-import { cookies } from 'next/headers';
 import { createClient } from '@/lib/supabase/server';
-import { MOCK_PREFERENCES } from '@/app/data/dashboardMock';
 import PreferencesClientPage from './PreferencesClientPage';
 import { UserPreference } from '@/types';
 
-export default async function PreferencesPage() {
-  const cookieStore = await cookies();
-  const demoUser = cookieStore.get('sepetiq-demo-user')?.value;
+function createDefaultPreferences(userId = ''): UserPreference {
+  const now = new Date().toISOString();
 
-  let prefs: UserPreference;
-  
-  if (demoUser) {
-    prefs = MOCK_PREFERENCES;
-  } else {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (user) {
-      const { data } = await supabase
-        .from('user_preferences')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
-      
-      prefs = data || MOCK_PREFERENCES;
-    } else {
-      prefs = MOCK_PREFERENCES;
-    }
+  return {
+    user_id: userId,
+    default_mode: 'balanced',
+    monthly_budget: 0,
+    notifications_enabled: true,
+    timezone: 'Europe/Istanbul',
+    created_at: now,
+    updated_at: now,
+  };
+}
+
+export default async function PreferencesPage() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return <PreferencesClientPage initialPrefs={createDefaultPreferences()} />;
   }
 
-  return <PreferencesClientPage initialPrefs={prefs} />;
+  const { data, error } = await supabase
+    .from('user_preferences')
+    .select('*')
+    .eq('user_id', user.id)
+    .maybeSingle();
+
+  if (error) {
+    console.error('Error fetching user preferences:', error);
+  }
+
+  return <PreferencesClientPage initialPrefs={data || createDefaultPreferences(user.id)} />;
 }

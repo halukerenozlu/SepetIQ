@@ -1,21 +1,20 @@
-import { cookies } from 'next/headers';
 import { createClient } from '@/lib/supabase/server';
-import { MOCK_DECISIONS } from '@/app/data/dashboardMock';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import {
-  ShoppingBag,
   PiggyBank,
   Zap,
   Calendar,
   ChevronRight,
   BarChart3,
-  LucideIcon
+  LucideIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { DashboardMockDecision, Verdict } from '@/types';
+import { Verdict } from '@/types';
+import { DashboardEmptyState } from '@/components/dashboard/DashboardEmptyState';
+import { getDashboardStats, getDecisions } from '@/lib/data';
 
 const verdictConfig: Record<Verdict, { label: string; color: string; bgColor: string }> = {
   buy: { label: 'Al', color: 'text-emerald-700', bgColor: 'bg-emerald-100' },
@@ -25,39 +24,27 @@ const verdictConfig: Record<Verdict, { label: string; color: string; bgColor: st
   consider_alternative: { label: 'Alternatif', color: 'text-sky-700', bgColor: 'bg-sky-100' },
 };
 
-function StatCard({ 
-  title, 
-  value, 
-  icon: Icon, 
-  description, 
-  trend 
-}: { 
-  title: string; 
-  value: string; 
+function StatCard({
+  title,
+  value,
+  icon: Icon,
+  description,
+}: {
+  title: string;
+  value: string;
   icon: LucideIcon;
   description?: string;
-  trend?: { value: string; positive: boolean };
 }) {
   return (
     <Card>
       <CardContent className="p-6">
-        <div className="flex items-center justify-between space-y-0 pb-2">
+        <div className="flex items-center justify-between pb-2">
           <p className="text-sm font-medium text-muted-foreground">{title}</p>
           <Icon className="h-4 w-4 text-muted-foreground" />
         </div>
-        <div className="flex items-baseline gap-2">
-          <div className="text-2xl font-bold">{value}</div>
-          {trend && (
-            <span className={cn(
-              "text-xs font-medium",
-              trend.positive ? "text-emerald-600" : "text-red-600"
-            )}>
-              {trend.value}
-            </span>
-          )}
-        </div>
+        <div className="text-2xl font-bold">{value}</div>
         {description && (
-          <p className="text-xs text-muted-foreground mt-1">{description}</p>
+          <p className="mt-1 text-xs text-muted-foreground">{description}</p>
         )}
       </CardContent>
     </Card>
@@ -65,56 +52,17 @@ function StatCard({
 }
 
 export default async function DashboardPage() {
-  const cookieStore = await cookies();
-  const demoUser = cookieStore.get('sepetiq-demo-user')?.value;
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  let decisions: DashboardMockDecision[] = [];
-
-  if (demoUser) {
-    decisions = MOCK_DECISIONS;
-  } else {
-    const supabase = await createClient();
-    const { data } = await supabase
-      .from('decisions')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(10);
-    decisions = (data || []).map((d: Record<string, unknown>) => ({
-      id: d.id as string,
-      user_id: d.user_id as string,
-      product_name: d.product_name as string,
-      product_url: (d.product_url as string) || '',
-      product_price: d.product_price as number,
-      product_category: d.product_category as string,
-      verdict: d.verdict as Verdict,
-      verdict_message: d.body as string,
-      shopping_mode: d.mode_used as string,
-      need_score: 0,
-      budget_score: 0,
-      product_score: 0,
-      total_score: 0,
-      is_cyclic_recheck: (d.total_cycles as number) > 1,
-      created_at: d.created_at as string,
-    }));
-  }
-
-  // Calculate stats
-  const totalDecisions = decisions.length;
-  const totalSavings = decisions
-    .filter(d => d.verdict === 'dont_buy' || d.verdict === 'wait')
-    .reduce((acc, curr) => acc + curr.product_price, 0);
-  
-  const avgScore = totalDecisions > 0 
-    ? Math.round(decisions.reduce((acc, curr) => acc + curr.total_score, 0) / totalDecisions)
-    : 0;
-  
-  const thisMonthDecisions = decisions.filter(d => {
-    const date = new Date(d.created_at);
-    const now = new Date();
-    return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
-  }).length;
-
-  const recentDecisions = decisions.slice(0, 5);
+  const [decisions, stats] = user
+    ? await Promise.all([
+        getDecisions(user.id, 5),
+        getDashboardStats(user.id),
+      ])
+    : [[], await getDashboardStats('')];
 
   return (
     <div className="space-y-8">
@@ -123,53 +71,36 @@ export default async function DashboardPage() {
         <p className="text-muted-foreground">Kişisel harcama asistanınızın özeti.</p>
       </div>
 
-      {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <StatCard 
-          title="Toplam Karar" 
-          value={totalDecisions.toString()} 
-          icon={Zap} 
+        <StatCard
+          title="Toplam Karar"
+          value={stats.totalDecisions.toString()}
+          icon={Zap}
           description="Şu ana kadar analiz edilen ürünler"
         />
-        <StatCard 
-          title="Toplam Tasarruf" 
-          value={`${totalSavings.toLocaleString('tr-TR')} ₺`} 
-          icon={PiggyBank} 
+        <StatCard
+          title="Toplam Tasarruf"
+          value={`${stats.totalSavings.toLocaleString('tr-TR')} ₺`}
+          icon={PiggyBank}
           description="Vazgeçilen veya bekletilen harcamalar"
-          trend={{ value: "+12%", positive: true }}
         />
-        <StatCard 
-          title="Ortalama Skor" 
-          value={avgScore.toString()} 
-          icon={BarChart3} 
+        <StatCard
+          title="Ortalama Skor"
+          value={stats.avgScore.toString()}
+          icon={BarChart3}
           description="Alışverişlerinizin genel puanı"
         />
-        <StatCard 
-          title="Bu Ay" 
-          value={thisMonthDecisions.toString()} 
-          icon={Calendar} 
-          description="Mayıs ayındaki toplam aktiviteler"
+        <StatCard
+          title="Bu Ay"
+          value={stats.thisMonthDecisions.toString()}
+          icon={Calendar}
+          description={`${new Date().toLocaleDateString('tr-TR', { month: 'long' })} ayındaki toplam aktiviteler`}
         />
       </div>
 
-      {/* Onboarding Banner */}
-      {totalDecisions === 0 && (
-        <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-8 text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
-            <ShoppingBag className="h-6 w-6" />
-          </div>
-          <h3 className="mt-4 text-lg font-semibold text-emerald-900">Henüz karar yok!</h3>
-          <p className="mt-2 text-emerald-700">
-            SepetIQ henüz hiçbir ürün sayfasında çalışmadı. Chrome eklentisini kurup bir ürün sayfasına giderek ilk analizinizi başlatabilirsiniz.
-          </p>
-          <Button className="mt-6 bg-emerald-600 hover:bg-emerald-700" asChild>
-            <Link href="/extension-setup">Eklentiyi Kur</Link>
-          </Button>
-        </div>
-      )}
-
-      {/* Recent Decisions Table */}
-      {totalDecisions > 0 && (
+      {stats.totalDecisions === 0 ? (
+        <DashboardEmptyState />
+      ) : (
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-lg font-semibold">Son Kararlar</CardTitle>
@@ -182,7 +113,7 @@ export default async function DashboardPage() {
           <CardContent className="p-0">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
-                <thead className="border-b bg-zinc-50/50 text-zinc-500 font-medium">
+                <thead className="border-b bg-zinc-50/50 font-medium text-zinc-500">
                   <tr>
                     <th className="px-6 py-3">Ürün Adı</th>
                     <th className="px-6 py-3">Fiyat</th>
@@ -191,10 +122,10 @@ export default async function DashboardPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y">
-                  {recentDecisions.map((decision) => (
-                    <tr 
-                      key={decision.id} 
-                      className="group cursor-pointer hover:bg-zinc-50 transition-colors"
+                  {decisions.map((decision) => (
+                    <tr
+                      key={decision.id}
+                      className="group cursor-pointer transition-colors hover:bg-zinc-50"
                     >
                       <td className="px-6 py-4">
                         <Link href={`/decisions/${decision.id}`} className="font-medium text-zinc-900 group-hover:text-emerald-600">
@@ -205,12 +136,12 @@ export default async function DashboardPage() {
                         {decision.product_price.toLocaleString('tr-TR')} ₺
                       </td>
                       <td className="px-6 py-4">
-                        <Badge 
-                          variant="secondary" 
+                        <Badge
+                          variant="secondary"
                           className={cn(
-                            "font-medium",
+                            'font-medium',
                             verdictConfig[decision.verdict].bgColor,
-                            verdictConfig[decision.verdict].color
+                            verdictConfig[decision.verdict].color,
                           )}
                         >
                           {verdictConfig[decision.verdict].label}
@@ -230,4 +161,3 @@ export default async function DashboardPage() {
     </div>
   );
 }
-

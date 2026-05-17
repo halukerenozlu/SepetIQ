@@ -33,9 +33,47 @@ from sse_starlette.sse import EventSourceResponse
 from middleware.auth import get_user_id
 from models.schemas import DecisionRequest
 from models.state import AgentState
-from services import decision_store
+from services import decision_store, supabase_client
 
 logger = logging.getLogger(__name__)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Supabase persistence helper
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+async def _save_to_supabase(
+    record: decision_store.DecisionRecord,
+    state_values: dict,
+    verdict_out: dict,
+    tone_out: dict,
+    traces: list,
+) -> None:
+    """
+    Saves a completed decision to Supabase decisions table.
+    All errors are caught and logged — this must never interrupt the pipeline.
+    """
+    try:
+        total_duration_ms: int = sum(int(t.get("duration_ms") or 0) for t in traces if isinstance(t, dict))
+        decision_row = {
+            "user_id": record.user_id,
+            "product_name": state_values.get("product_name") or "Unknown Product",
+            "product_category": state_values.get("product_category") or "electronics",
+            "product_price": float(state_values.get("product_price") or 0.0),
+            "product_url": record.product_url or None,
+            "mode_used": record.mode,
+            "verdict": verdict_out.get("verdict", "wait"),
+            "confidence": int(verdict_out.get("confidence_score") or 50),
+            "headline": tone_out.get("headline") or "",
+            "body": tone_out.get("body") or "",
+            "suggested_action": (tone_out.get("suggested_action") or verdict_out.get("suggested_action")),
+            "total_duration_ms": total_duration_ms or None,
+        }
+        await supabase_client.save_decision(decision_row)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("Supabase save failed (non-fatal): %s", exc)
+
 
 router = APIRouter(prefix="/api/v1/decisions", tags=["decisions"])
 
@@ -371,6 +409,9 @@ async def _run_pipeline(decision_id: str, initial_state: AgentState) -> None:
             "agent_traces": traces,
         }
         record.status = "completed"
+
+        # ── Persist to Supabase (non-blocking, errors are silent) ─────────────
+        await _save_to_supabase(record, state_values, verdict_out, tone_out, traces)
 
         # ── Emit verdict ──────────────────────────────────────────────────────
         await push(

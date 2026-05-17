@@ -19,7 +19,10 @@ export function HistoryFilters({
       defaultValue={currentCategory || ''}
       onChange={(e) => {
         const val = e.target.value;
-        router.push(`?verdict=${currentVerdict}${val ? `&category=${val}` : ''}`);
+        const params = new URLSearchParams();
+        params.set('verdict', currentVerdict);
+        if (val) params.set('category', val);
+        router.push(`/dashboard/history?${params.toString()}`);
       }}
     >
       <option value="">Tüm Kategoriler</option>
