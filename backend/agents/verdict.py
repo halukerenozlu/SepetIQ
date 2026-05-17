@@ -107,22 +107,6 @@ async def run(state: AgentState) -> dict:
         )
 
     # ------------------------------------------------------------------
-    # Hard Block 2: İhtiyaç analizi henüz tamamlanmadı
-    # ------------------------------------------------------------------
-    if need_analyzer.get("awaiting_answers", False):
-        duration_ms = int((time.monotonic() - started) * 1000)
-        return _build_result(
-            verdict="conditional_buy",
-            confidence_score=30,
-            primary_reason="İhtiyaç analizi henüz tamamlanmadı; kullanıcı sorularını yanıtlamalı.",
-            suggested_action="Lütfen ihtiyaç sorularını yanıtlayın.",
-            score_breakdown=_zero_scores(),
-            flags=["awaiting_user_input"],
-            traces=traces,
-            duration_ms=duration_ms,
-        )
-
-    # ------------------------------------------------------------------
     # Adım 2: Bireysel skorlar
     # ------------------------------------------------------------------
 
@@ -132,7 +116,8 @@ async def run(state: AgentState) -> dict:
     product_score: int = 100 - risk_score
 
     # need_score
-    raw_need: int = int(need_analyzer.get("need_score") or -1)
+    _raw_need = need_analyzer.get("need_score")
+    raw_need: int = -1 if _raw_need is None else int(_raw_need)
     need_score: int = 50 if raw_need == -1 else raw_need
 
     # budget_score

@@ -6,6 +6,7 @@ Gemini'ye tek seferde tüm yorumları gönderir, yapılandırılmış risk skoru
 """
 
 from __future__ import annotations
+import os
 
 import logging
 import time
@@ -97,7 +98,7 @@ _structured_chain = None
 def _get_chain():
     global _structured_chain
     if _structured_chain is None:
-        llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash")
+        llm = ChatGoogleGenerativeAI(model=os.getenv("GEMINI_MODEL", "gemini-2.5-flash"))
         _structured_chain = llm.with_structured_output(ReviewRiskExtraction)
     return _structured_chain
 

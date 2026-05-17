@@ -6,6 +6,7 @@ Tüm sayısal alanlar Python'da hesaplanır; Gemini yalnızca Türkçe özet cü
 """
 
 from __future__ import annotations
+import os
 
 import logging
 import time
@@ -31,7 +32,7 @@ _llm = None
 def _get_llm() -> ChatGoogleGenerativeAI:
     global _llm
     if _llm is None:
-        _llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash")
+        _llm = ChatGoogleGenerativeAI(model=os.getenv("GEMINI_MODEL", "gemini-2.5-flash"))
     return _llm
 
 

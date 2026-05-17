@@ -7,6 +7,7 @@ Ton: verdict + kullanıcı modu + davranış profili etiketine göre belirlenir.
 """
 
 from __future__ import annotations
+import os
 
 import logging
 import time
@@ -44,7 +45,7 @@ _structured = None
 def _get_structured():
     global _structured
     if _structured is None:
-        _structured = ChatGoogleGenerativeAI(model="gemini-2.0-flash").with_structured_output(ToneWriterMessage)
+        _structured = ChatGoogleGenerativeAI(model=os.getenv("GEMINI_MODEL", "gemini-2.5-flash")).with_structured_output(ToneWriterMessage)
     return _structured
 
 

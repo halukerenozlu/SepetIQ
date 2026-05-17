@@ -8,6 +8,7 @@ Amacı: Ürün sayfasından gelen ham veriyi yapılandırır.
 """
 
 from __future__ import annotations
+import os
 
 import re
 import time
@@ -44,7 +45,7 @@ _structured = None
 def _get_structured():
     global _structured
     if _structured is None:
-        _structured = ChatGoogleGenerativeAI(model="gemini-1.5-flash").with_structured_output(ProductExtraction)
+        _structured = ChatGoogleGenerativeAI(model=os.getenv("GEMINI_MODEL", "gemini-2.5-flash")).with_structured_output(ProductExtraction)
     return _structured
 
 

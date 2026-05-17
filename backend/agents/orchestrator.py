@@ -121,9 +121,9 @@ async def tone_writer_node(state: AgentState) -> dict:
 
 def should_continue(state: AgentState) -> str:
     need_out = state.get("need_analyzer_output") or {}
-    cycle = state.get("cycle_iteration") or 0
-
-    if need_out.get("awaiting_answers", False) and cycle < 1:
+    # cycle_iteration kontrolü kaldırıldı: awaiting_answers=True ise her zaman
+    # second_pass'e git. interrupt_before zaten sonsuz döngüyü önlüyor.
+    if need_out.get("awaiting_answers", False):
         return "second_pass"
     return "verdict"
 

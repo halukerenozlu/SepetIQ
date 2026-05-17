@@ -7,6 +7,7 @@ Need Analyzer Agent
 """
 
 from __future__ import annotations
+import os
 
 import logging
 import time
@@ -132,7 +133,7 @@ _structured_chain = None
 def _get_chain():
     global _structured_chain
     if _structured_chain is None:
-        llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash")
+        llm = ChatGoogleGenerativeAI(model=os.getenv("GEMINI_MODEL", "gemini-2.5-flash"))
         _structured_chain = llm.with_structured_output(QuestionsOutput)
     return _structured_chain
 
@@ -220,7 +221,9 @@ async def run(state: AgentState) -> dict:
     profile_tag: str = behavior_profile.get("profile_tag") or "unknown"
     impulsivity_score: int = int(behavior_profile.get("impulsivity_score") or 50)
 
-    is_first_run = (cycle_iteration == 0) or (not user_answers)
+    # Sadece user_answers'a bak: cevap varsa ikinci çalışma, yoksa birinci.
+    # cycle_iteration'a bağlı olmak kırılgan — state injection gecikmesi bug'a neden oluyordu.
+    is_first_run = not bool(user_answers)
 
     # -----------------------------------------------------------------------
     # İLK ÇALIŞMA: Gemini ile soru üret
