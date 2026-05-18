@@ -133,11 +133,30 @@ export default function PreferencesPage({
 
   return (
     <div className="max-w-4xl space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Tercihler</h1>
-        <p className="text-muted-foreground">
-          SepetIQ&apos;nun size nasıl davranacağını belirleyin.
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Tercihler</h1>
+          <p className="text-muted-foreground">
+            SepetIQ&apos;nun size nasıl davranacağını belirleyin.
+          </p>
+        </div>
+        <Button
+          onClick={handleSave}
+          disabled={loading}
+          className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-11 px-6 shrink-0"
+        >
+          {loading ? (
+            "Kaydediliyor..."
+          ) : success ? (
+            <span className="flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4" /> Kaydedildi
+            </span>
+          ) : (
+            <span className="flex items-center gap-2">
+              <Save className="h-4 w-4" /> Değişiklikleri Kaydet
+            </span>
+          )}
+        </Button>
       </div>
 
       {/* Shopping Mode */}
@@ -188,6 +207,7 @@ export default function PreferencesPage({
               </button>
             );
           })}
+
         </div>
       </div>
 
@@ -207,11 +227,12 @@ export default function PreferencesPage({
               <Input
                 type="number"
                 className="h-11 text-lg font-bold"
-                value={prefs.monthly_budget}
+                placeholder="0"
+                value={prefs.monthly_budget ?? ""}
                 onChange={(e) =>
                   setPrefs((prev) => ({
                     ...prev,
-                    monthly_budget: parseFloat(e.target.value),
+                    monthly_budget: e.target.value === "" ? 0 : (parseFloat(e.target.value) || 0),
                   }))
                 }
               />
@@ -269,26 +290,6 @@ export default function PreferencesPage({
         </Card>
       </div>
 
-      {/* Save Button */}
-      <div className="flex items-center justify-end pt-6 border-t">
-        <Button
-          onClick={handleSave}
-          disabled={loading}
-          className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-12 px-8 min-w-50"
-        >
-          {loading ? (
-            "Kaydediliyor..."
-          ) : success ? (
-            <span className="flex items-center gap-2">
-              <CheckCircle2 className="h-5 w-5" /> Kaydedildi
-            </span>
-          ) : (
-            <span className="flex items-center gap-2">
-              <Save className="h-5 w-5" /> Değişiklikleri Kaydet
-            </span>
-          )}
-        </Button>
-      </div>
     </div>
   );
 }

@@ -79,12 +79,13 @@ export default async function HistoryPage({
           categories={categories}
           currentVerdict={activeVerdict}
           currentCategory={category}
+          hasFilters={hasFilters}
         />
       </div>
 
       <div className="grid gap-4">
         {decisions.length === 0 ? (
-          <DashboardEmptyState showClearFilters={hasFilters} />
+          <DashboardEmptyState />
         ) : (
           decisions.map((decision) => (
             <Link key={decision.id} href={`/decisions/${decision.id}`}>

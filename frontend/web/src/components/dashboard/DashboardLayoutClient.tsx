@@ -11,6 +11,15 @@ import {
   SheetHeader,
   SheetTitle
 } from '@/components/ui/sheet';
+import { usePathname } from 'next/navigation';
+
+const PAGE_TITLES: Record<string, string> = {
+  '/dashboard': 'Dashboard',
+  '/dashboard/history': 'Karar Geçmişi',
+  '/dashboard/purchases': 'Alışverişlerim',
+  '/dashboard/stats': 'İstatistikler',
+  '/dashboard/preferences': 'Tercihler',
+};
 
 export default function DashboardLayout({
   children,
@@ -21,12 +30,15 @@ export default function DashboardLayout({
   demoUser?: string;
   displayName?: string;
 }) {
+  const pathname = usePathname();
+  const pageTitle = PAGE_TITLES[pathname] ?? 'Dashboard';
+
   return (
-    <div className="flex min-h-screen bg-white">
+    <div className="flex h-screen bg-white overflow-hidden">
       {/* Desktop Sidebar */}
       <Sidebar />
 
-      <div className="flex flex-1 flex-col">
+      <div className="flex flex-1 flex-col min-w-0">
         {/* Top Navigation */}
         <header className="flex h-16 items-center justify-between border-b px-4 lg:px-8">
           <div className="flex items-center gap-4">
@@ -45,9 +57,7 @@ export default function DashboardLayout({
               </SheetContent>
             </Sheet>
             <h2 className="text-lg font-semibold text-zinc-900 lg:hidden">SepetIQ</h2>
-            <div className="hidden lg:block">
-              {/* Breadcrumbs or Page Title could go here */}
-            </div>
+            <h1 className="hidden lg:block text-base font-semibold text-zinc-900">{pageTitle}</h1>
           </div>
 
           <div className="flex items-center gap-4">
