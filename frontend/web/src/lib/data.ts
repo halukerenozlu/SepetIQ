@@ -31,7 +31,35 @@ function getConfidenceScore(decision: Record<string, unknown>): number {
   return toNumber(decision.confidence_score ?? decision.confidence);
 }
 
+function readScoreBreakdown(decision: Record<string, unknown>): Record<string, unknown> {
+  const direct = decision.score_breakdown;
+  if (direct && typeof direct === 'object' && !Array.isArray(direct)) {
+    const scoreBreakdown = direct as Record<string, unknown>;
+    if (Object.keys(scoreBreakdown).length > 0) {
+      return scoreBreakdown;
+    }
+  }
+
+  const legacy = decision.decision_scores;
+  const row = Array.isArray(legacy) ? legacy[0] : legacy;
+  if (row && typeof row === 'object') {
+    const scores = row as Record<string, unknown>;
+    const productScore = toNumber(scores.product_fit);
+    return {
+      product_score: productScore,
+      need_score: toNumber(scores.need_score),
+      budget_score: 50,
+      behavior_score: 50,
+      review_risk: toNumber(scores.review_risk),
+    };
+  }
+
+  return {};
+}
+
 function mapDecision(decision: Record<string, unknown>): DashboardDecision {
+  const scoreBreakdown = readScoreBreakdown(decision);
+
   return {
     id: String(decision.id ?? ''),
     user_id: String(decision.user_id ?? ''),
@@ -42,9 +70,9 @@ function mapDecision(decision: Record<string, unknown>): DashboardDecision {
     verdict: normalizeVerdict(String(decision.verdict ?? 'wait')),
     verdict_message: String(decision.body ?? decision.headline ?? ''),
     shopping_mode: String(decision.mode_used ?? 'balanced'),
-    need_score: 0,
-    budget_score: 0,
-    product_score: 0,
+    need_score: toNumber(scoreBreakdown.need_score),
+    budget_score: toNumber(scoreBreakdown.budget_score),
+    product_score: toNumber(scoreBreakdown.product_score),
     total_score: getConfidenceScore(decision),
     is_cyclic_recheck: toNumber(decision.total_cycles) > 1,
     total_duration_ms: toNumber(decision.total_duration_ms),
@@ -67,7 +95,7 @@ export async function getDecisions(
 
     let query = supabase
       .from('decisions')
-      .select('*')
+      .select('*, decision_scores(*)')
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
 

@@ -82,6 +82,7 @@ export interface Decision {
   estimated_savings?: number;
   total_cycles?: number;
   total_duration_ms?: number;
+  score_breakdown?: Record<string, number>;
   created_at: string;
 }
 

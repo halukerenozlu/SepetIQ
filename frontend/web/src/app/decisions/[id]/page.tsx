@@ -75,6 +75,38 @@ function ScoreCircle({ score, label }: { score: number; label: string }) {
   );
 }
 
+function toNumber(value: unknown): number {
+  if (typeof value === "number") return value;
+  if (typeof value === "string") return Number(value) || 0;
+  return 0;
+}
+
+function readScoreBreakdown(decisionData: Record<string, unknown>): Record<string, unknown> {
+  const direct = decisionData.score_breakdown;
+  if (direct && typeof direct === "object" && !Array.isArray(direct)) {
+    const scoreBreakdown = direct as Record<string, unknown>;
+    if (Object.keys(scoreBreakdown).length > 0) {
+      return scoreBreakdown;
+    }
+  }
+
+  const legacy = decisionData.decision_scores;
+  const row = Array.isArray(legacy) ? legacy[0] : legacy;
+  if (row && typeof row === "object") {
+    const scores = row as Record<string, unknown>;
+    const productScore = toNumber(scores.product_fit);
+    return {
+      product_score: productScore,
+      need_score: toNumber(scores.need_score),
+      budget_score: 50,
+      behavior_score: 50,
+      review_risk: toNumber(scores.review_risk),
+    };
+  }
+
+  return {};
+}
+
 export default async function DecisionDetailPage({
   params,
 }: {
@@ -166,12 +198,12 @@ export default async function DecisionDetailPage({
     const supabase = await createClient();
     const { data: decisionData } = await supabase
       .from("decisions")
-      .select("*")
+      .select("*, decision_scores(*)")
       .eq("id", id)
       .single();
 
     if (decisionData) {
-      const sb = (decisionData.score_breakdown ?? {}) as Record<string, number>;
+      const sb = readScoreBreakdown(decisionData as Record<string, unknown>);
       decision = {
         id: decisionData.id,
         user_id: decisionData.user_id,
@@ -182,10 +214,10 @@ export default async function DecisionDetailPage({
         verdict: decisionData.verdict,
         verdict_message: decisionData.body,
         shopping_mode: decisionData.mode_used,
-        need_score: sb.need_score ?? 0,
-        budget_score: sb.budget_score ?? 0,
-        product_score: sb.product_score ?? 0,
-        total_score: sb.behavior_score ?? 0,
+        need_score: toNumber(sb.need_score),
+        budget_score: toNumber(sb.budget_score),
+        product_score: toNumber(sb.product_score),
+        total_score: toNumber(decisionData.confidence ?? sb.behavior_score),
         is_cyclic_recheck: decisionData.total_cycles > 1,
         created_at: decisionData.created_at,
       };

@@ -5,7 +5,7 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from routers import decisions
+from routers import decisions, users
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +37,7 @@ app.add_middleware(
 # ─────────────────────────────────────────────────────────────────────────────
 
 app.include_router(decisions.router)
+app.include_router(users.router)
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Utility endpoints

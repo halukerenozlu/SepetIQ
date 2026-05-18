@@ -17,6 +17,8 @@ import {
   Bell,
   Save,
   CheckCircle2,
+  AlertTriangle,
+  Trash2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ShoppingMode, UserPreference } from "@/types";
@@ -91,6 +93,7 @@ export default function PreferencesPage({
   initialPrefs: UserPreference;
 }) {
   const [loading, setLoading] = useState(false);
+  const [clearingData, setClearingData] = useState(false);
   const [success, setSuccess] = useState(false);
   const [prefs, setPrefs] = useState<UserPreference>(initialPrefs);
 
@@ -128,6 +131,52 @@ export default function PreferencesPage({
       alert("Ayarlar kaydedilirken hata oluştu!");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleClearData = async () => {
+    const confirmed = window.confirm(
+      "Karar geçmişiniz, geçmiş alışverişleriniz ve kişiselleştirme ayarlarınız silinecek. Devam etmek istiyor musunuz?",
+    );
+    if (!confirmed) return;
+
+    setClearingData(true);
+    try {
+      const supabase = createClient();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session?.access_token) {
+        alert("Verileri silmek için tekrar giriş yapmanız gerekiyor.");
+        return;
+      }
+
+      const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
+      const response = await fetch(`${apiBase}/api/v1/users/me/data`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      setPrefs((prev) => ({
+        ...prev,
+        default_mode: "balanced",
+        monthly_budget: 0,
+        savings_goal: undefined,
+        notifications_enabled: true,
+      }));
+      alert("Verileriniz temizlendi. SepetIQ sizin için temiz bir başlangıç yaptı.");
+    } catch (err) {
+      console.error(err);
+      alert("Veriler silinirken hata oluştu.");
+    } finally {
+      setClearingData(false);
     }
   };
 
@@ -289,6 +338,30 @@ export default function PreferencesPage({
           </CardContent>
         </Card>
       </div>
+
+      <Card className="border-red-200 bg-red-50/40">
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2 text-red-900">
+            <AlertTriangle className="h-5 w-5" />
+            Temiz Başlangıç
+          </CardTitle>
+          <CardDescription className="text-red-800/80">
+            Karar geçmişinizi, geçmiş alışverişlerinizi ve kişiselleştirme ayarlarınızı siler. Hesabınız ve onay bilgileriniz korunur.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleClearData}
+            disabled={clearingData}
+            className="border-red-300 bg-white text-red-700 hover:bg-red-50 hover:text-red-800"
+          >
+            <Trash2 className="h-4 w-4" />
+            {clearingData ? "Siliniyor..." : "Verilerimi Sil"}
+          </Button>
+        </CardContent>
+      </Card>
 
     </div>
   );

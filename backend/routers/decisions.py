@@ -75,7 +75,9 @@ async def _save_to_supabase(
             "total_duration_ms": total_duration_ms or None,
             "score_breakdown": verdict_out.get("score_breakdown") or {},
         }
-        await supabase_client.save_decision(decision_row)
+        saved_decision_id = await supabase_client.save_decision(decision_row)
+        if saved_decision_id:
+            await supabase_client.save_decision_scores(saved_decision_id, decision_row["score_breakdown"])
     except Exception as exc:  # noqa: BLE001
         logger.warning("Supabase save failed (non-fatal): %s", exc)
 
