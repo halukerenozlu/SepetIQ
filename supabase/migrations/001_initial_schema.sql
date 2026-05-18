@@ -1,7 +1,8 @@
 -- Initial schema — exported from Supabase Dashboard on 2026-05-18
 -- Reflects the current production DB state as ground truth.
+-- IF NOT EXISTS: safe to run on existing DB (baseline migration).
 
-CREATE TABLE public.agent_traces (
+CREATE TABLE IF NOT EXISTS public.agent_traces (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   decision_id uuid NOT NULL,
   agent_name text NOT NULL,
@@ -20,7 +21,7 @@ CREATE TABLE public.agent_traces (
   CONSTRAINT agent_traces_decision_id_fkey FOREIGN KEY (decision_id) REFERENCES public.decisions(id)
 );
 
-CREATE TABLE public.decision_questions (
+CREATE TABLE IF NOT EXISTS public.decision_questions (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   decision_id uuid NOT NULL,
   cycle_iteration integer NOT NULL DEFAULT 1,
@@ -34,7 +35,7 @@ CREATE TABLE public.decision_questions (
   CONSTRAINT decision_questions_decision_id_fkey FOREIGN KEY (decision_id) REFERENCES public.decisions(id)
 );
 
-CREATE TABLE public.decision_scores (
+CREATE TABLE IF NOT EXISTS public.decision_scores (
   decision_id uuid NOT NULL,
   product_fit integer NOT NULL CHECK (product_fit >= 0 AND product_fit <= 100),
   review_risk integer NOT NULL CHECK (review_risk >= 0 AND review_risk <= 100),
@@ -46,7 +47,7 @@ CREATE TABLE public.decision_scores (
   CONSTRAINT decision_scores_decision_id_fkey FOREIGN KEY (decision_id) REFERENCES public.decisions(id)
 );
 
-CREATE TABLE public.decisions (
+CREATE TABLE IF NOT EXISTS public.decisions (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   user_id uuid NOT NULL,
   product_name text NOT NULL,
@@ -70,7 +71,7 @@ CREATE TABLE public.decisions (
   CONSTRAINT decisions_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
 );
 
-CREATE TABLE public.demo_products (
+CREATE TABLE IF NOT EXISTS public.demo_products (
   id text NOT NULL,
   name text NOT NULL,
   category text NOT NULL CHECK (category = ANY (ARRAY['electronics'::text, 'cosmetics'::text])),
@@ -87,7 +88,7 @@ CREATE TABLE public.demo_products (
   CONSTRAINT demo_products_pkey PRIMARY KEY (id)
 );
 
-CREATE TABLE public.demo_reviews (
+CREATE TABLE IF NOT EXISTS public.demo_reviews (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   product_id text NOT NULL,
   rating integer NOT NULL CHECK (rating >= 1 AND rating <= 5),
@@ -101,7 +102,7 @@ CREATE TABLE public.demo_reviews (
   CONSTRAINT demo_reviews_product_id_fkey FOREIGN KEY (product_id) REFERENCES public.demo_products(id)
 );
 
-CREATE TABLE public.demo_user_profiles (
+CREATE TABLE IF NOT EXISTS public.demo_user_profiles (
   id text NOT NULL,
   display_name text NOT NULL,
   avatar_url text,
@@ -115,7 +116,7 @@ CREATE TABLE public.demo_user_profiles (
   CONSTRAINT demo_user_profiles_pkey PRIMARY KEY (id)
 );
 
-CREATE TABLE public.past_purchases (
+CREATE TABLE IF NOT EXISTS public.past_purchases (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   user_id uuid NOT NULL,
   product_name text NOT NULL,
@@ -132,7 +133,7 @@ CREATE TABLE public.past_purchases (
   CONSTRAINT past_purchases_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
 );
 
-CREATE TABLE public.user_preferences (
+CREATE TABLE IF NOT EXISTS public.user_preferences (
   user_id uuid NOT NULL,
   default_mode text DEFAULT 'balanced'::text CHECK (default_mode = ANY (ARRAY['soft'::text, 'balanced'::text, 'strict'::text])),
   monthly_budget numeric,
@@ -145,7 +146,7 @@ CREATE TABLE public.user_preferences (
   CONSTRAINT user_preferences_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
 );
 
-CREATE TABLE public.user_profiles (
+CREATE TABLE IF NOT EXISTS public.user_profiles (
   id uuid NOT NULL,
   display_name text,
   avatar_url text,
