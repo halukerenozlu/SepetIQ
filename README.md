@@ -1,5 +1,11 @@
 # SepetIQ — Conscious Shopping Assistant
 
+[![Backend](https://img.shields.io/badge/backend-FastAPI-009688?style=flat-square)](backend)
+[![Web](https://img.shields.io/badge/web-Next.js%2016-111111?style=flat-square)](frontend/web)
+[![Extension](https://img.shields.io/badge/extension-Vite%20%2B%20React-646CFF?style=flat-square)](frontend/extension)
+[![Package Manager](https://img.shields.io/badge/package%20manager-pnpm-F69220?style=flat-square)](frontend)
+[![Python](https://img.shields.io/badge/python-3.13-2E5BFF?style=flat-square)](backend)
+
 > Against the "Buy Now" pressure of e-commerce, the consumer's first **"Think" button.**
 
 SepetIQ is an **agentic AI browser extension** that activates on e-commerce pages. It does not recommend products — it questions whether you should really buy the product you intend to, using 3 scores (Product Fit, Review Risk, Need Score) and 7 LLM agents.
@@ -49,7 +55,7 @@ Product Context → Review Risk → Behavior Profile
                               │
 ┌─────────────────────────────┼──────────────────────────────┐
 │                     Companion Web                           │
-│                   (Next.js 15 + Tailwind)                   │
+│                   (Next.js 16 + Tailwind)                   │
 └─────────────────────────────┬──────────────────────────────┘
                               │
                      ┌────────▼──────────┐
@@ -95,8 +101,8 @@ hardening task.
 
 | Layer     | Technology                                             | Package Manager |
 | --------- | ------------------------------------------------------ | --------------- |
-| Backend   | Python 3.12, FastAPI, LangGraph, Pydantic V2, Supabase | `uv`            |
-| Web       | Next.js 15, React 19, TypeScript, Tailwind, shadcn/ui  | `pnpm`          |
+| Backend   | Python 3.13, FastAPI, LangGraph, Pydantic V2, Supabase | `uv`            |
+| Web       | Next.js 16, React 19, TypeScript, Tailwind, shadcn/ui  | `pnpm`          |
 | Extension | Vite, React, TypeScript, @crxjs/vite-plugin            | `pnpm`          |
 | LLM       | Gemini 2.5 Flash                                       | —               |
 | Auth      | Supabase Auth (Google OAuth)                           | —               |
@@ -118,9 +124,10 @@ sepetiq/
 │   ├── models/             # Pydantic schemas + state
 │   ├── services/           # Supabase client, etc.
 │   └── main.py             # FastAPI entry point
-├── web/                    # Next.js companion web (WIP)
-├── extension/              # Vite browser extension (WIP)
-└── supabase/               # Supabase configuration
+├── frontend/
+│   ├── web/                # Next.js companion web
+│   └── extension/          # Vite browser extension
+└── supabase/               # Supabase configuration and migrations
 ```
 
 ---
@@ -134,15 +141,51 @@ uv sync
 uv run uvicorn main:app --reload
 
 # Web (Next.js)
-cd web
+cd frontend/web
 pnpm install
 pnpm dev
 
 # Extension (Vite + React)
-cd extension
+cd frontend/extension
 pnpm install
-pnpm dev
+pnpm build
 ```
+
+---
+
+## Supabase Migrations
+
+Run the migrations in order from `supabase/migrations/`:
+
+```text
+001_initial_schema.sql
+002_add_consent_fields.sql
+003_add_score_breakdown.sql
+```
+
+`003_add_score_breakdown.sql` adds `decisions.score_breakdown`, which is used by the dashboard and decision detail pages to show Product, Need, Budget, and Behavior scores. If this migration is missing, the backend still falls back to `decision_scores`, but the new score breakdown will not be stored on the `decisions` row.
+
+---
+
+## Extension Local Install
+
+1. Start the backend at `http://localhost:8000`.
+2. Start the web dashboard at `http://localhost:3000`.
+3. Build the extension:
+
+```bash
+cd frontend/extension
+pnpm build
+```
+
+4. Open `chrome://extensions` in Chrome.
+5. Enable **Developer mode**.
+6. Click **Load unpacked**.
+7. Select `frontend/extension/dist`.
+8. Open `http://localhost:3000/dashboard` and sign in.
+9. Visit a supported product page and use the SepetIQ button.
+
+The extension defaults to `http://localhost:8000` for the backend. If you use a different backend URL, update the `apiBase` value in Chrome extension storage.
 
 ---
 

@@ -99,7 +99,10 @@ export default async function DashboardPage() {
       </div>
 
       {stats.totalDecisions === 0 ? (
-        <DashboardEmptyState />
+        <DashboardEmptyState
+          title="Henüz karar geçmişiniz yok"
+          description="Extension ile ilk ürün analizinizi yaptığınızda skorlar, kararlar ve tasarruf özeti burada görünür."
+        />
       ) : (
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">

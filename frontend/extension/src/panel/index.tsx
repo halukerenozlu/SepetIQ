@@ -107,7 +107,22 @@ function getVerdict(events: SSEEvent[]): VerdictData | null {
 function getErrorMessage(events: SSEEvent[]): string {
   const event = [...events].reverse().find((item) => item.eventType === "error");
   const data = readObject(event?.data);
-  return String(data.error ?? data.message ?? "Analiz sırasında bir hata oluştu.");
+  const rawMessage = String(data.error ?? data.message ?? "");
+
+  if (/ürün bilgisi|product/i.test(rawMessage)) {
+    return "Ürün bilgisi alınamadı. Desteklenen bir ürün sayfasında olduğunuzdan emin olun veya sayfayı yenileyip tekrar deneyin.";
+  }
+  if (/timeout|zaman|uzun/i.test(rawMessage)) {
+    return "Analiz beklenenden uzun sürdü. Bağlantınızı ve backend durumunu kontrol edip tekrar deneyin.";
+  }
+  if (/fetch|network|bağlantı|connection|HTTP 5/i.test(rawMessage)) {
+    return "Backend bağlantısı kurulamadı. API sunucusunun çalıştığını kontrol edip tekrar deneyin.";
+  }
+  if (rawMessage) {
+    return rawMessage;
+  }
+
+  return "Analiz sırasında bir hata oluştu. Sayfayı yenileyip tekrar deneyin.";
 }
 
 function getScoreTone(score: number): "danger" | "warning" | "success" {

@@ -85,7 +85,15 @@ export default async function HistoryPage({
 
       <div className="grid gap-4">
         {decisions.length === 0 ? (
-          <DashboardEmptyState />
+          <DashboardEmptyState
+            tone={hasFilters ? 'filtered' : 'default'}
+            title={hasFilters ? 'Bu filtrelerle karar bulunamadı' : 'Henüz karar geçmişiniz yok'}
+            description={
+              hasFilters
+                ? 'Filtreleri temizleyerek tüm karar geçmişinizi yeniden görüntüleyebilirsiniz.'
+                : 'Desteklenen bir ürün sayfasında SepetIQ analizini çalıştırdığınızda kararlarınız burada listelenir.'
+            }
+          />
         ) : (
           decisions.map((decision) => (
             <Link key={decision.id} href={`/decisions/${decision.id}`}>

@@ -82,9 +82,9 @@
 | ------------------- | ---------------------------------------------- | -------------------------------- |
 | Eklenti Frontend    | React + TypeScript + Vite + @crxjs/vite-plugin | Bilinen stack, AI desteği yüksek |
 | Eklenti Styling     | Tailwind CSS                                   | Hızlı UI                         |
-| Companion Web       | Next.js 15 + React + TypeScript                | Server components, app router    |
+| Companion Web       | Next.js 16 + React + TypeScript                | Server components, app router    |
 | Web Styling         | Tailwind + shadcn/ui                           | Hazır component'ler              |
-| Backend             | Python 3.12 + FastAPI + Pydantic               | Async, type-safe, hızlı          |
+| Backend             | Python 3.13 + FastAPI + Pydantic               | Async, type-safe, hızlı          |
 | Agent Orchestration | LangGraph (Python)                             | Cyclic flow, görsel trace        |
 | LLM                 | Gemini 2.5 Flash                               | Ücretsiz katman, hızlı           |
 | Veritabanı          | Supabase PostgreSQL                            | Auth + DB tek pakette            |

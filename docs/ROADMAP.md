@@ -60,7 +60,7 @@ Tüm geliştirme ortamını kurmak, repo yapısını oluşturmak, ilk "Hello Wor
   - `main.py` — hello world endpoint
   - Railway'e ilk deploy
 - [ ] **Web setup:**
-  - `pnpm create next-app web` (Next.js 15 + Tailwind + TypeScript)
+  - `pnpm create next-app web` (Next.js 16 + Tailwind + TypeScript)
   - shadcn/ui kur
   - Landing page placeholder
   - Vercel'e ilk deploy

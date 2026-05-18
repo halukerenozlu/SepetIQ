@@ -1,6 +1,6 @@
 # WEB.md — Companion Web Mimarisi
 
-> Next.js 15 + React + TypeScript + Tailwind + shadcn/ui ile yapılmış companion (eşlik eden) web sitesi.
+> Next.js 16 + React + TypeScript + Tailwind + shadcn/ui ile yapılmış companion (eşlik eden) web sitesi.
 
 ---
 

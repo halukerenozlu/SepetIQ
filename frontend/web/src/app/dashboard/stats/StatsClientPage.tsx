@@ -103,7 +103,11 @@ export default function StatsClientPage({ decisions }: { decisions: DashboardDec
           <h1 className="text-3xl font-bold tracking-tight">İstatistikler</h1>
           <p className="text-muted-foreground">Alışveriş alışkanlıklarınızın veri odaklı analizi.</p>
         </div>
-        <DashboardEmptyState />
+        <DashboardEmptyState
+          tone="stats"
+          title="Grafikler için henüz yeterli veri yok"
+          description="Birkaç ürün analizi yaptıktan sonra tasarruf, karar dağılımı ve skor trendi burada oluşur."
+        />
       </div>
     );
   }

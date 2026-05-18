@@ -51,8 +51,8 @@ sepetiq/
 
 | Layer | Stack | Package Manager |
 |---|---|---|
-| Backend | Python 3.12, FastAPI, LangGraph, Pydantic V2, Supabase | `uv` |
-| Web | Next.js 15, React 19, TypeScript, Tailwind, shadcn/ui | `pnpm` |
+| Backend | Python 3.13, FastAPI, LangGraph, Pydantic V2, Supabase | `uv` |
+| Web | Next.js 16, React 19, TypeScript, Tailwind, shadcn/ui | `pnpm` |
 | Extension | Vite, React, TypeScript, @crxjs/vite-plugin | `pnpm` |
 
 ```bash

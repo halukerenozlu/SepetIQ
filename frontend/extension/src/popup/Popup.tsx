@@ -6,8 +6,8 @@ const SUPPORTED_URL_PATTERNS = [
   /trendyol\.com/,
   /hepsiburada\.com/,
   /n11\.com/,
-  /amazon\.com/,
-  /localhost:\d+/,
+  /amazon\.com\.tr/,
+  /localhost:3001\/product\//,
 ];
 
 interface AuthState {
@@ -17,6 +17,16 @@ interface AuthState {
 
 function isSupportedSite(url: string): boolean {
   return SUPPORTED_URL_PATTERNS.some((pattern) => pattern.test(url));
+}
+
+function shortUrl(url: string): string {
+  if (!url) return "Aktif sekme okunamadı";
+  try {
+    const parsed = new URL(url);
+    return parsed.hostname;
+  } catch {
+    return "Desteklenmeyen sayfa";
+  }
 }
 
 export function Popup() {
@@ -40,8 +50,9 @@ export function Popup() {
 
   if (loading) {
     return (
-      <div style={{ ...s.container, alignItems: "center", justifyContent: "center", minHeight: 120 }}>
+      <div style={{ ...s.container, alignItems: "center", justifyContent: "center", minHeight: 150 }}>
         <div style={s.spinner} />
+        <div style={s.loadingText}>SepetIQ hazırlanıyor...</div>
       </div>
     );
   }
@@ -52,18 +63,26 @@ export function Popup() {
   return (
     <div style={s.container}>
       <header style={s.header}>
-        <span style={s.logo}>SepetIQ</span>
-        <span style={s.tagline}>Bilinçli alışveriş asistanı</span>
+        <div>
+          <div style={s.logo}>SepetIQ</div>
+          <div style={s.tagline}>Bilinçli satın alma kontrolü</div>
+        </div>
+        <span style={isLoggedIn ? s.authBadgeOk : s.authBadgeWarn}>
+          {isLoggedIn ? "Bağlı" : "Giriş yok"}
+        </span>
       </header>
 
-      {onSupportedSite && (
-        <div style={s.siteBadge}>
-          <span style={s.badgeDot} />
-          Bu site destekleniyor
-        </div>
-      )}
-
       <div style={s.body}>
+        <StatusCard
+          type={onSupportedSite ? "success" : "warning"}
+          title={onSupportedSite ? "Bu ürün sayfası destekleniyor" : "Desteklenen bir ürün sayfası açın"}
+          description={
+            onSupportedSite
+              ? `${shortUrl(activeTabUrl)} üzerinde analiz başlatabilirsiniz.`
+              : "Trendyol, Hepsiburada, n11, Amazon Türkiye veya local demo ürün sayfasına gidin."
+          }
+        />
+
         {isLoggedIn ? (
           <LoggedInView onSupportedSite={onSupportedSite} />
         ) : (
@@ -74,13 +93,34 @@ export function Popup() {
   );
 }
 
+function StatusCard({
+  type,
+  title,
+  description,
+}: {
+  type: "success" | "warning";
+  title: string;
+  description: string;
+}) {
+  const style = type === "success" ? s.statusSuccess : s.statusWarning;
+
+  return (
+    <div style={{ ...s.statusCard, ...style }}>
+      <div style={type === "success" ? s.statusDotSuccess : s.statusDotWarning} />
+      <div>
+        <div style={s.statusTitle}>{title}</div>
+        <div style={s.statusDescription}>{description}</div>
+      </div>
+    </div>
+  );
+}
+
 function LoggedOutView() {
   return (
     <div style={s.section}>
-      <div style={s.benefits}>
-        <div style={s.benefitItem}>Kişiselleştirilmiş karar geçmişi</div>
-        <div style={s.benefitItem}>Bütçe ve alışveriş alışkanlıklarına göre analiz</div>
-        <div style={s.benefitItem}>Daha güçlü dashboard deneyimi</div>
+      <div style={s.callout}>
+        <strong>Dashboard senkronizasyonu için giriş yapın.</strong>
+        <span>Giriş sonrası karar geçmişiniz ve skorlarınız web panelinde görünür.</span>
       </div>
       <a href={`${DASHBOARD_URL}/login`} target="_blank" rel="noreferrer" style={s.primaryButton}>
         Google ile Giriş Yap
@@ -94,17 +134,17 @@ function LoggedInView({ onSupportedSite }: { onSupportedSite: boolean }) {
     <div style={s.section}>
       <p style={s.description}>
         {onSupportedSite
-          ? 'Ürün sayfasında "SepetIQ ile Kontrol Et" butonuna tıklayın.'
-          : "Desteklenen bir alışveriş sitesine gidin ve ürünü analiz edin."}
+          ? 'Sayfadaki "SepetIQ ile Kontrol Et" butonuyla analizi başlatın.'
+          : "Analiz butonu yalnızca desteklenen ürün sayfalarında görünür."}
       </p>
-      <a
-        href={`${DASHBOARD_URL}/dashboard`}
-        target="_blank"
-        rel="noreferrer"
-        style={s.primaryButton}
-      >
-        Dashboard'u Aç
-      </a>
+      <div style={s.actions}>
+        <a href={`${DASHBOARD_URL}/dashboard`} target="_blank" rel="noreferrer" style={s.primaryButton}>
+          Dashboard'u Aç
+        </a>
+        <a href={`${DASHBOARD_URL}/dashboard/history`} target="_blank" rel="noreferrer" style={s.secondaryButton}>
+          Karar Geçmişi
+        </a>
+      </div>
     </div>
   );
 }
@@ -113,81 +153,144 @@ const s: Record<string, React.CSSProperties> = {
   container: {
     display: "flex",
     flexDirection: "column",
-    width: 320,
+    width: 340,
+    background: "#ffffff",
+    color: "#111827",
   },
   header: {
     display: "flex",
-    flexDirection: "column",
-    gap: 2,
-    padding: "16px 16px 12px",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+    padding: "16px",
     borderBottom: "1px solid #f3f4f6",
   },
   logo: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: 900,
-    color: "#6366f1",
-    letterSpacing: "-0.3px",
+    color: "#4f46e5",
   },
   tagline: {
+    marginTop: 2,
     fontSize: 11,
-    color: "#9ca3af",
-    fontWeight: 600,
+    color: "#6b7280",
+    fontWeight: 650,
   },
-  siteBadge: {
+  authBadgeOk: {
+    borderRadius: 999,
+    padding: "5px 9px",
+    background: "#ecfdf5",
+    color: "#047857",
+    fontSize: 11,
+    fontWeight: 800,
+  },
+  authBadgeWarn: {
+    borderRadius: 999,
+    padding: "5px 9px",
+    background: "#fff7ed",
+    color: "#c2410c",
+    fontSize: 11,
+    fontWeight: 800,
+  },
+  body: {
     display: "flex",
-    alignItems: "center",
-    gap: 6,
-    padding: "8px 16px",
-    background: "#f0fdf4",
-    borderBottom: "1px solid #dcfce7",
-    fontSize: 12,
-    fontWeight: 700,
-    color: "#16a34a",
+    flexDirection: "column",
+    gap: 12,
+    padding: 16,
   },
-  badgeDot: {
-    width: 7,
-    height: 7,
+  statusCard: {
+    display: "flex",
+    gap: 10,
+    borderRadius: 10,
+    border: "1px solid",
+    padding: 12,
+  },
+  statusSuccess: {
+    background: "#f0fdf4",
+    borderColor: "#bbf7d0",
+  },
+  statusWarning: {
+    background: "#fffbeb",
+    borderColor: "#fde68a",
+  },
+  statusDotSuccess: {
+    width: 9,
+    height: 9,
+    marginTop: 4,
     borderRadius: "50%",
     background: "#22c55e",
     flexShrink: 0,
-    display: "inline-block",
   },
-  body: {
-    padding: "12px 16px 16px",
+  statusDotWarning: {
+    width: 9,
+    height: 9,
+    marginTop: 4,
+    borderRadius: "50%",
+    background: "#f59e0b",
+    flexShrink: 0,
+  },
+  statusTitle: {
+    fontSize: 12,
+    fontWeight: 850,
+    color: "#1f2937",
+  },
+  statusDescription: {
+    marginTop: 3,
+    fontSize: 11,
+    lineHeight: 1.45,
+    color: "#6b7280",
   },
   section: {
     display: "flex",
     flexDirection: "column",
     gap: 10,
   },
-  description: {
-    fontSize: 13,
-    color: "#6b7280",
-    lineHeight: 1.5,
-  },
-  benefits: {
+  callout: {
     display: "flex",
     flexDirection: "column",
-    gap: 6,
-    padding: "2px 0",
-  },
-  benefitItem: {
-    position: "relative",
-    paddingLeft: 14,
-    fontSize: 12,
+    gap: 4,
+    padding: 12,
+    borderRadius: 10,
+    background: "#f9fafb",
     color: "#4b5563",
-    lineHeight: 1.4,
-    fontWeight: 650,
+    fontSize: 12,
+    lineHeight: 1.45,
+  },
+  description: {
+    margin: 0,
+    fontSize: 13,
+    color: "#4b5563",
+    lineHeight: 1.5,
+  },
+  actions: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    gap: 8,
   },
   primaryButton: {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     minHeight: 38,
-    padding: "0 16px",
+    padding: "0 14px",
     borderRadius: 8,
-    background: "#6366f1",
+    background: "#4f46e5",
     color: "white",
+    fontSize: 13,
+    fontWeight: 850,
+    textDecoration: "none",
+    cursor: "pointer",
+  },
+  secondaryButton: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: 38,
+    padding: "0 14px",
+    borderRadius: 8,
+    border: "1px solid #e5e7eb",
+    background: "#ffffff",
+    color: "#374151",
     fontSize: 13,
     fontWeight: 800,
     textDecoration: "none",
@@ -197,8 +300,13 @@ const s: Record<string, React.CSSProperties> = {
     width: 22,
     height: 22,
     border: "3px solid #e0e7ff",
-    borderTopColor: "#6366f1",
+    borderTopColor: "#4f46e5",
     borderRadius: "50%",
-    animation: "spin 700ms linear infinite",
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 12,
+    fontWeight: 700,
+    color: "#6b7280",
   },
 };
