@@ -35,10 +35,10 @@ const FREQUENCIES: { value: UsageFrequency; label: string }[] = [
   { value: "never", label: "Hiç Kullanmadım" },
 ];
 
-const SATISFACTION: { value: Satisfaction; label: string; icon: string }[] = [
-  { value: "satisfied", label: "Memnun", icon: "😊" },
-  { value: "neutral", label: "Nötr", icon: "😐" },
-  { value: "regretted", label: "Pişman", icon: "😕" },
+const SATISFACTION: { value: Satisfaction; label: string }[] = [
+  { value: "satisfied", label: "Memnun" },
+  { value: "neutral", label: "Nötr" },
+  { value: "regretted", label: "Pişman" },
 ];
 
 export function PurchaseForm({ onRefresh }: { onRefresh: () => void }) {
@@ -66,7 +66,6 @@ export function PurchaseForm({ onRefresh }: { onRefresh: () => void }) {
       } = await supabase.auth.getUser();
 
       if (!user) {
-        // Handle demo mode or unauth
         console.log("Demo mode: Form submitted", formData);
         setSuccess(true);
         setTimeout(() => {
@@ -108,7 +107,7 @@ export function PurchaseForm({ onRefresh }: { onRefresh: () => void }) {
       }, 2000);
     } catch (err) {
       console.error(err);
-      alert("Hata oluştu!");
+      alert("Alışveriş kaydedilemedi. Bağlantınızı kontrol edip tekrar deneyin.");
     } finally {
       setLoading(false);
     }
@@ -263,7 +262,7 @@ export function PurchaseForm({ onRefresh }: { onRefresh: () => void }) {
                   >
                     {SATISFACTION.map((s) => (
                       <option key={s.value} value={s.value}>
-                        {s.icon} {s.label}
+                        {s.label}
                       </option>
                     ))}
                   </select>

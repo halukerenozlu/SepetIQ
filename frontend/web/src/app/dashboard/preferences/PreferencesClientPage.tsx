@@ -33,23 +33,23 @@ const MODES: {
 }[] = [
   {
     id: "soft",
-    label: "Soft (Yumuşak)",
+    label: "Nazik Rehber",
     icon: ShieldCheck,
-    description: "Dengeli değerlendirme, önerilere açık, huzurlu harcama.",
+    description: "Yumuşak tonla sorgular, ihtiyacınızı netleştirir.",
     color: "emerald",
   },
   {
     id: "balanced",
-    label: "Balanced (Dengeli)",
+    label: "Dengeli Hakem",
     icon: Scale,
-    description: "Standart analiz, nötr ton, mantıklı sınırlar.",
+    description: "İstek, bütçe ve riski aynı masada tartar.",
     color: "sky",
   },
   {
     id: "strict",
-    label: "Strict (Sıkı)",
+    label: "Sıkı Dost",
     icon: Zap,
-    description: "Sert sorgucu, harcama minimalist, tasarruf odaklı.",
+    description: "Dürtüsel alışverişe daha sert fren koyar.",
     color: "amber",
   },
 ];
@@ -94,6 +94,9 @@ export default function PreferencesPage({
 }) {
   const [loading, setLoading] = useState(false);
   const [clearingData, setClearingData] = useState(false);
+  const [clearConfirmOpen, setClearConfirmOpen] = useState(false);
+  const [clearDone, setClearDone] = useState(false);
+  const [clearError, setClearError] = useState("");
   const [success, setSuccess] = useState(false);
   const [prefs, setPrefs] = useState<UserPreference>(initialPrefs);
 
@@ -128,19 +131,15 @@ export default function PreferencesPage({
       setTimeout(() => setSuccess(false), 2000);
     } catch (err) {
       console.error(err);
-      alert("Ayarlar kaydedilirken hata oluştu!");
+      alert("Ayarlar kaydedilemedi. Bağlantınızı kontrol edip tekrar deneyin.");
     } finally {
       setLoading(false);
     }
   };
 
   const handleClearData = async () => {
-    const confirmed = window.confirm(
-      "Karar geçmişiniz, geçmiş alışverişleriniz ve kişiselleştirme ayarlarınız silinecek. Devam etmek istiyor musunuz?",
-    );
-    if (!confirmed) return;
-
     setClearingData(true);
+    setClearError("");
     try {
       const supabase = createClient();
       const {
@@ -148,7 +147,7 @@ export default function PreferencesPage({
       } = await supabase.auth.getSession();
 
       if (!session?.access_token) {
-        alert("Verileri silmek için tekrar giriş yapmanız gerekiyor.");
+        setClearError("Verileri silmek için tekrar giriş yapmanız gerekiyor.");
         return;
       }
 
@@ -171,10 +170,10 @@ export default function PreferencesPage({
         savings_goal: undefined,
         notifications_enabled: true,
       }));
-      alert("Verileriniz temizlendi. SepetIQ sizin için temiz bir başlangıç yaptı.");
+      setClearDone(true);
     } catch (err) {
       console.error(err);
-      alert("Veriler silinirken hata oluştu.");
+      setClearError("Veriler silinemedi. Bağlantınızı kontrol edip tekrar deneyin.");
     } finally {
       setClearingData(false);
     }
@@ -353,7 +352,11 @@ export default function PreferencesPage({
           <Button
             type="button"
             variant="outline"
-            onClick={handleClearData}
+            onClick={() => {
+              setClearConfirmOpen(true);
+              setClearDone(false);
+              setClearError("");
+            }}
             disabled={clearingData}
             className="border-red-300 bg-white text-red-700 hover:bg-red-50 hover:text-red-800"
           >
@@ -362,6 +365,73 @@ export default function PreferencesPage({
           </Button>
         </CardContent>
       </Card>
+
+      {clearConfirmOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 px-4">
+          <div className="w-full max-w-md rounded-xl border border-red-200 bg-white p-6 shadow-2xl">
+            {clearDone ? (
+              <div className="space-y-4 text-center">
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+                  <CheckCircle2 className="h-6 w-6" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-zinc-900">Veriler silindi</h3>
+                  <p className="mt-2 text-sm text-zinc-600">
+                    SepetIQ sizin için temiz bir başlangıç yaptı.
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  onClick={() => setClearConfirmOpen(false)}
+                  className="w-full bg-emerald-600 text-white hover:bg-emerald-700"
+                >
+                  Tamam
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-5">
+                <div className="flex items-start gap-3">
+                  <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-100 text-red-700">
+                    <AlertTriangle className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-zinc-900">Verileri sil?</h3>
+                    <p className="mt-2 text-sm leading-6 text-zinc-600">
+                      Karar geçmişiniz, geçmiş alışverişleriniz ve kişiselleştirme ayarlarınız silinecek.
+                      Hesabınız ve onay bilgileriniz korunur.
+                    </p>
+                  </div>
+                </div>
+
+                {clearError && (
+                  <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-800">
+                    {clearError}
+                  </div>
+                )}
+
+                <div className="grid grid-cols-2 gap-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setClearConfirmOpen(false)}
+                    disabled={clearingData}
+                  >
+                    Vazgeç
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={handleClearData}
+                    disabled={clearingData}
+                    className="bg-red-600 text-white hover:bg-red-700"
+                  >
+                    {clearingData ? "Siliniyor..." : "Sil"}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
     </div>
   );

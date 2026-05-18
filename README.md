@@ -5,6 +5,7 @@
 [![Extension](https://img.shields.io/badge/extension-Vite%20%2B%20React-646CFF?style=flat-square)](frontend/extension)
 [![Package Manager](https://img.shields.io/badge/package%20manager-pnpm-F69220?style=flat-square)](frontend)
 [![Python](https://img.shields.io/badge/python-3.13-2E5BFF?style=flat-square)](backend)
+[![Python Package Manager](https://img.shields.io/badge/python%20package%20manager-uv-2E5BFF?style=flat-square)](backend)
 
 > Against the "Buy Now" pressure of e-commerce, the consumer's first **"Think" button.**
 

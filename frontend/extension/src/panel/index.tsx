@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+﻿import { useMemo, useState } from "react";
 import type {
   AnalysisMode,
   AnalysisStatus,
@@ -40,9 +40,9 @@ const AGENTS: AgentProgress[] = [
 ];
 
 const MODE_LABELS: Record<AnalysisMode, string> = {
-  soft: "Yumuşak Mod",
-  balanced: "Dengeli Mod",
-  strict: "Disiplinli Mod",
+  soft: "Nazik Rehber",
+  balanced: "Dengeli Hakem",
+  strict: "Sıkı Dost",
 };
 
 const VERDICT_LABELS: Record<string, string> = {
@@ -52,7 +52,6 @@ const VERDICT_LABELS: Record<string, string> = {
   dont_buy: "Vazgeç",
   consider_alternative: "Vazgeç",
 };
-
 function readObject(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" ? (value as Record<string, unknown>) : {};
 }
@@ -171,9 +170,7 @@ export function DecisionPanel({
           <p className="eyebrow">SepetIQ</p>
           <h1>Satın alma kontrolü</h1>
         </div>
-        <button className="icon-button" type="button" onClick={onClose} aria-label="Kapat">
-          ×
-        </button>
+        <button className="icon-button" type="button" onClick={onClose} aria-label="Kapat">x</button>
       </header>
 
       <div className="mode-row">
@@ -185,9 +182,7 @@ export function DecisionPanel({
         {(status === "idle" || status === "analyzing") && (
           <>
             {isSlowWarning && (
-              <div className="slow-warning">
-                ⏱ Beklenenden uzun sürüyor...
-              </div>
+              <div className="slow-warning">Beklenenden uzun sürüyor. Sonuç gelmezse tekrar deneyebilirsiniz.</div>
             )}
             <AgentProgressList progress={progress} />
           </>
@@ -230,7 +225,7 @@ function AgentProgressList({ progress }: { progress: AgentProgress[] }) {
       {progress.map((agent) => (
         <li className={`agent-row ${agent.status}`} key={agent.id}>
           <span className="agent-icon" aria-hidden="true">
-            {agent.status === "running" ? "" : agent.status === "complete" ? "✓" : ""}
+            {agent.status === "running" ? "" : agent.status === "complete" ? "\u2713" : ""}
           </span>
           <span className="agent-copy">
             <span className="agent-name">{agent.label}</span>
@@ -257,11 +252,25 @@ function QuestionStep({
   onSelect,
   onSubmit,
 }: QuestionStepProps) {
+  const answeredCount = questions.filter((question) => answers[question.id]).length;
+  const totalQuestions = Math.max(questions.length, 1);
+  const progressPercent = Math.round((answeredCount / totalQuestions) * 100);
+
   return (
     <div className="question-step">
       <div className="section-heading">
         <h2>Birkaç netleştirme sorusu</h2>
         <p>Yanıtların karar skorunu doğrudan etkiler.</p>
+      </div>
+
+      <div className="question-progress" aria-label={`Soru ilerlemesi ${answeredCount}/${totalQuestions}`}>
+        <div className="progress-copy">
+          <span>İlerleme</span>
+          <strong>{answeredCount}/{totalQuestions}</strong>
+        </div>
+        <div className="progress-track">
+          <div className="progress-fill" style={{ width: `${progressPercent}%` }} />
+        </div>
       </div>
 
       <div className="question-list">
@@ -335,7 +344,7 @@ const DASHBOARD_URL = "http://localhost:3000";
 function GuestLimitStep() {
   return (
     <div className="guest-limit-state">
-      <div className="guest-limit-icon">🔒</div>
+      <div className="guest-limit-icon">ğŸ”’</div>
       <h2>Günlük limit doldu</h2>
       <p>
         Misafir olarak günde <strong>10 ücretsiz analiz</strong> hakkın var.
@@ -347,7 +356,7 @@ function GuestLimitStep() {
         target="_blank"
         rel="noreferrer"
       >
-        Giriş Yap — Sınırsız Kullan
+        Giriş Yap - Sınırsız Kullan
       </a>
     </div>
   );
@@ -580,6 +589,39 @@ const styles = `
     gap: 12px;
   }
 
+  .question-progress {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    padding: 10px;
+    border-radius: 10px;
+    background: #eef2ff;
+    border: 1px solid #e0e7ff;
+  }
+
+  .progress-copy {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: #4338ca;
+    font-size: 12px;
+    font-weight: 800;
+  }
+
+  .progress-track {
+    height: 7px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: #c7d2fe;
+  }
+
+  .progress-fill {
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #6366f1, #22c55e);
+    transition: width 240ms ease;
+  }
+
   .question-block {
     display: flex;
     flex-direction: column;
@@ -808,3 +850,6 @@ const styles = `
     to { opacity: 1; transform: translate(0, -50%); }
   }
 `;
+
+
+

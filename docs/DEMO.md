@@ -243,6 +243,12 @@ Demo öncesi/arası 3 slayt kullanılabilir:
 
 ## 4. Demo Riski Yönetimi
 
+### 4.0 Supabase Checklist
+
+- `001_initial_schema.sql`, `002_add_consent_fields.sql`, `003_add_score_breakdown.sql` sirasiyla calistirilmis olmali.
+- `003_add_score_breakdown.sql` yoksa karar kaydi fallback ile tutulabilir, ancak dashboard skor detaylari eksik gorunebilir.
+- Demo kullanicisiyla en az bir test analizi yapilip dashboard'da gorundugu dogrulanmali.
+
 ### 4.1 Olası Sorunlar
 
 | Sorun                        | Olasılık | Etki       | Azaltma                            |

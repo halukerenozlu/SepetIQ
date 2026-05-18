@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useRouter } from 'next/navigation';
 import { PurchaseForm } from '@/components/dashboard/PurchaseForm';
@@ -16,9 +16,9 @@ import { PastPurchase, UsageFrequency, Satisfaction } from '@/types';
 import { createClient } from '@/lib/supabase/client';
 
 const satisfactionIcons: Record<Satisfaction, string> = {
-  satisfied: '😊',
-  neutral: '😐',
-  regretted: '😕'
+  satisfied: '',
+  neutral: '',
+  regretted: ''
 };
 
 const frequencyLabels: Record<UsageFrequency, string> = {
@@ -37,13 +37,13 @@ export default function PurchasesClientPage({
   const router = useRouter();
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Bu alışverişi silmek istediğinizden emin misiniz?')) return;
+    if (!confirm('Bu alışveriş kaydını silmek istediğinizden emin misiniz?')) return;
     
     const supabase = createClient();
     const { error } = await supabase.from('past_purchases').delete().eq('id', id);
     
     if (error) {
-      alert('Hata oluştu!');
+      alert('Alışveriş kaydı silinemedi. Bağlantınızı kontrol edip tekrar deneyin.');
     } else {
       router.refresh();
     }
@@ -102,7 +102,7 @@ export default function PurchasesClientPage({
                     <div className="flex items-center gap-1.5 text-xs text-zinc-500">
                       <Smile className="h-3.5 w-3.5" />
                       <span className="font-medium text-zinc-700">
-                        {purchase.satisfaction ? `${satisfactionIcons[purchase.satisfaction]} ${purchase.satisfaction === 'satisfied' ? 'Memnun' : purchase.satisfaction === 'neutral' ? 'Nötr' : 'Pişman'}` : '-'}
+                        {purchase.satisfaction ? `${satisfactionIcons[purchase.satisfaction]} ${purchase.satisfaction === 'satisfied' ? 'Memnun' : purchase.satisfaction === 'neutral' ? 'Nötr' : 'Pişman'}`.trim() : '-'}
                       </span>
                     </div>
                   </div>
@@ -124,3 +124,4 @@ export default function PurchasesClientPage({
     </div>
   );
 }
+
