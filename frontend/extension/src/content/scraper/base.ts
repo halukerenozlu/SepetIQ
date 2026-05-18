@@ -9,6 +9,39 @@ import type { ScrapedProduct } from "../../shared/types";
 
 export type { ScrapedProduct };
 
+interface JsonLdNode {
+  "@type"?: string | string[];
+  "@graph"?: JsonLdNode[];
+  name?: string;
+  description?: string;
+  image?: string | string[] | { url?: string } | Array<{ url?: string }>;
+  brand?: string | { name?: string };
+  sku?: string;
+  productID?: string;
+  offers?:
+    | {
+        price?: string | number;
+        priceCurrency?: string;
+        availability?: string;
+      }
+    | Array<{
+        price?: string | number;
+        priceCurrency?: string;
+        availability?: string;
+      }>;
+  aggregateRating?: {
+    ratingValue?: string | number;
+    reviewCount?: string | number;
+    ratingCount?: string | number;
+  };
+}
+
+interface JsonLdOfferNode {
+  price?: string | number;
+  priceCurrency?: string;
+  availability?: string;
+}
+
 export abstract class BaseScraper {
   /** Returns true if this scraper can handle the given URL. */
   abstract canHandle(url: string): boolean;
@@ -18,6 +51,15 @@ export abstract class BaseScraper {
    * Returns null if the page is not a recognized product page.
    */
   abstract scrape(): ScrapedProduct | null;
+
+  /**
+   * CSS selectors for the site's "Add to Cart" button(s).
+   * Used by the content script to auto-trigger analysis on click.
+   * Override per-site. Empty list = no auto-trigger.
+   */
+  getAddToCartSelectors(): string[] {
+    return [];
+  }
 
   // ─── DOM utilities ─────────────────────────────────────────────────────────
 
@@ -41,6 +83,73 @@ export abstract class BaseScraper {
     } catch {
       return null;
     }
+  }
+
+  protected getMetaContent(...selectors: string[]): string | null {
+    for (const selector of selectors) {
+      const content = this.safeQueryAttr(selector, "content");
+      if (content) return content.trim();
+    }
+    return null;
+  }
+
+  protected getJsonLdProducts(): JsonLdNode[] {
+    const products: JsonLdNode[] = [];
+    const scripts = document.querySelectorAll('script[type="application/ld+json"]');
+
+    scripts.forEach((script) => {
+      const parsed = this.parseJson(script.textContent ?? "");
+      if (!parsed) return;
+      this.collectJsonLdProducts(parsed, products);
+    });
+
+    return products;
+  }
+
+  protected getJsonLdProduct(): JsonLdNode | null {
+    return this.getJsonLdProducts()[0] ?? null;
+  }
+
+  protected getJsonLdOffer(product: JsonLdNode | null): JsonLdOfferNode | null {
+    const offers = product?.offers;
+    if (!offers) return null;
+    return Array.isArray(offers) ? offers[0] : offers;
+  }
+
+  protected readJsonLdImage(product: JsonLdNode | null): string | null {
+    const image = product?.image;
+    if (!image) return null;
+    if (typeof image === "string") return image;
+    if (Array.isArray(image)) {
+      const first = image[0];
+      return typeof first === "string" ? first : first?.url ?? null;
+    }
+    return image.url ?? null;
+  }
+
+  private parseJson(value: string): unknown | null {
+    try {
+      return JSON.parse(value);
+    } catch {
+      return null;
+    }
+  }
+
+  private collectJsonLdProducts(value: unknown, products: JsonLdNode[]): void {
+    if (!value || typeof value !== "object") return;
+
+    if (Array.isArray(value)) {
+      value.forEach((item) => this.collectJsonLdProducts(item, products));
+      return;
+    }
+
+    const node = value as JsonLdNode;
+    const types = Array.isArray(node["@type"]) ? node["@type"] : [node["@type"]];
+    if (types.some((type) => type?.toLowerCase() === "product")) {
+      products.push(node);
+    }
+
+    node["@graph"]?.forEach((item) => this.collectJsonLdProducts(item, products));
   }
 
   /**

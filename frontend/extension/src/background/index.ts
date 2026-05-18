@@ -22,6 +22,8 @@ const DEFAULT_API_BASE = "http://localhost:8000";
 const DASHBOARD_ORIGIN = "http://localhost:3000";
 const SUPABASE_COOKIE_RE = /^sb-.+-auth-token(?:\.\d+)?$/;
 
+const activeAnalysis = new Map<number, AbortController>();
+
 interface ExtensionAuthSession {
   accessToken: string | null;
   userId: string | null;
@@ -307,6 +309,9 @@ async function streamAnalysis(
   payload: Record<string, unknown>,
   authSession: ExtensionAuthSession,
 ): Promise<void> {
+  const controller = new AbortController();
+  activeAnalysis.set(tabId, controller);
+
   let response: Response;
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -315,6 +320,8 @@ async function streamAnalysis(
   if (authSession.accessToken) {
     headers.Authorization = `Bearer ${authSession.accessToken}`;
   }
+
+  startKeepalive();
 
   try {
     console.info("[SepetIQ SW] POST /api/v1/decisions/analyze", {
@@ -326,8 +333,12 @@ async function streamAnalysis(
       method: "POST",
       headers,
       body: JSON.stringify(payload),
+      signal: controller.signal,
     });
   } catch (err) {
+    activeAnalysis.delete(tabId);
+    stopKeepalive();
+    if (err instanceof Error && err.name === "AbortError") return;
     sendToTab(tabId, {
       type: MSG.ANALYSIS_ERROR,
       error: err instanceof Error ? err.message : "Bağlantı hatası",
@@ -336,6 +347,8 @@ async function streamAnalysis(
   }
 
   if (!response.ok) {
+    activeAnalysis.delete(tabId);
+    stopKeepalive();
     sendToTab(tabId, {
       type: MSG.ANALYSIS_ERROR,
       error: `HTTP ${response.status}: ${response.statusText}`,
@@ -345,7 +358,6 @@ async function streamAnalysis(
 
   try {
     for await (const { event, data } of parseSseStream(response)) {
-      // Parse JSON data when possible
       let parsed: unknown = data;
       try {
         parsed = JSON.parse(data);
@@ -359,18 +371,20 @@ async function streamAnalysis(
         data: parsed,
       });
 
-      // When analysis is complete, also send ANALYSIS_COMPLETE
       if (event === "done") {
-        // done event has empty data; full result is in "verdict" event
-        // The content script handles verdict event directly for now
         break;
       }
     }
   } catch (err) {
-    sendToTab(tabId, {
-      type: MSG.ANALYSIS_ERROR,
-      error: err instanceof Error ? err.message : "Stream okuma hatası",
-    });
+    if (!(err instanceof Error && err.name === "AbortError")) {
+      sendToTab(tabId, {
+        type: MSG.ANALYSIS_ERROR,
+        error: err instanceof Error ? err.message : "Stream okuma hatası",
+      });
+    }
+  } finally {
+    activeAnalysis.delete(tabId);
+    stopKeepalive();
   }
 }
 
@@ -419,6 +433,32 @@ function sendToTab(tabId: number, message: unknown): void {
   });
 }
 
+// ─── Service worker keepalive ─────────────────────────────────────────────────
+// MV3 service workers are killed after ~30s of inactivity. We use a repeating
+// alarm to keep the SW alive during long SSE streams.
+
+let activeStreams = 0;
+
+function startKeepalive(): void {
+  if (activeStreams === 0) {
+    chrome.alarms.create("sepetiq-keepalive", { periodInMinutes: 0.4 });
+  }
+  activeStreams++;
+}
+
+function stopKeepalive(): void {
+  activeStreams = Math.max(0, activeStreams - 1);
+  if (activeStreams === 0) {
+    chrome.alarms.clear("sepetiq-keepalive");
+  }
+}
+
+chrome.alarms.onAlarm.addListener((alarm) => {
+  if (alarm.name === "sepetiq-keepalive") {
+    // no-op ping — just wakes the SW
+  }
+});
+
 // ─── Message listener ─────────────────────────────────────────────────────────
 
 chrome.runtime.onMessage.addListener(
@@ -455,6 +495,15 @@ chrome.runtime.onMessage.addListener(
           submitAnswer(tabId, apiBase, decisionId, answers, authSession);
         },
       );
+      return false;
+    }
+
+    if (message.type === MSG.ABORT_ANALYSIS) {
+      const controller = activeAnalysis.get(tabId);
+      if (controller) {
+        controller.abort();
+        activeAnalysis.delete(tabId);
+      }
       return false;
     }
 

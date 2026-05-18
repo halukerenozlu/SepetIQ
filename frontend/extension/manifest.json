@@ -3,10 +3,16 @@
   "name": "SepetIQ - Akıllı Alışveriş Asistanı",
   "version": "0.1.0",
   "description": "Satın alma kararlarınızı AI ile analiz eder",
-  "permissions": ["activeTab", "storage", "sidePanel", "cookies"],
+  "permissions": ["activeTab", "storage", "sidePanel", "cookies", "alarms", "tabs"],
   "host_permissions": [
     "https://www.trendyol.com/*",
     "https://trendyol.com/*",
+    "https://www.amazon.com.tr/*",
+    "https://amazon.com.tr/*",
+    "https://www.hepsiburada.com/*",
+    "https://hepsiburada.com/*",
+    "https://www.n11.com/*",
+    "https://n11.com/*",
     "http://localhost:8000/*",
     "http://localhost:3000/*",
     "http://localhost:3001/*"
@@ -18,17 +24,34 @@
   "content_scripts": [
     {
       "matches": [
-        "https://www.trendyol.com/*/p-*",
-        "https://trendyol.com/*/p-*",
-        "http://localhost:3000/*",
+        "https://www.trendyol.com/*-p-*",
+        "https://trendyol.com/*-p-*",
+        "https://www.amazon.com.tr/*/dp/*",
+        "https://amazon.com.tr/*/dp/*",
+        "https://www.amazon.com.tr/dp/*",
+        "https://amazon.com.tr/dp/*",
+        "https://www.amazon.com.tr/gp/product/*",
+        "https://amazon.com.tr/gp/product/*",
+        "https://www.hepsiburada.com/*-pm-*",
+        "https://hepsiburada.com/*-pm-*",
+        "https://www.hepsiburada.com/*-p-*",
+        "https://hepsiburada.com/*-p-*",
+        "https://www.n11.com/urun/*",
+        "https://n11.com/urun/*",
         "http://localhost:3001/product/*"
       ],
       "js": ["src/content/index.ts"],
       "css": [],
       "run_at": "document_idle"
+    },
+    {
+      "matches": ["http://localhost:3000/*"],
+      "js": ["src/content/auth-bridge.ts"],
+      "run_at": "document_idle"
     }
   ],
   "action": {
-    "default_title": "SepetIQ Analiz"
+    "default_title": "SepetIQ Analiz",
+    "default_popup": "src/popup/index.html"
   }
 }

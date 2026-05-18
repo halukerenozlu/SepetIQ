@@ -18,6 +18,7 @@ export const MSG = {
   // Content → Background
   ANALYZE_REQUEST: "ANALYZE_REQUEST",
   ANSWER_SUBMIT: "ANSWER_SUBMIT",
+  ABORT_ANALYSIS: "ABORT_ANALYSIS",
   // Background → Content
   SSE_EVENT: "SSE_EVENT",
   ANALYSIS_ERROR: "ANALYSIS_ERROR",
@@ -38,6 +39,11 @@ export interface AnswerSubmitMsg {
   type: typeof MSG.ANSWER_SUBMIT;
   decisionId: string;
   answers: Record<string, string>;
+}
+
+/** Sent by content script to abort an in-progress analysis stream. */
+export interface AbortAnalysisMsg {
+  type: typeof MSG.ABORT_ANALYSIS;
 }
 
 /** SSE event forwarded from background to content script. */
@@ -63,6 +69,7 @@ export interface AnalysisCompleteMsg {
 export type ExtensionMessage =
   | AnalyzeRequestMsg
   | AnswerSubmitMsg
+  | AbortAnalysisMsg
   | SseEventMsg
   | AnalysisErrorMsg
   | AnalysisCompleteMsg;

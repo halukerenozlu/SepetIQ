@@ -22,7 +22,7 @@ export interface ScrapedProduct {
   specs: Record<string, string>;
   reviews: ScrapedReview[];
   scrapedAt: string; // ISO 8601 timestamp
-  source: "trendyol" | "generic" | "demo";
+  source: "amazon" | "hepsiburada" | "trendyol" | "generic" | "demo";
 }
 
 export interface ScrapedReview {

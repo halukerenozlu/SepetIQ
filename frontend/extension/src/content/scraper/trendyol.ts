@@ -19,6 +19,20 @@
 import { BaseScraper } from "./base";
 import type { ScrapedProduct } from "../../shared/types";
 
+interface TrendyolJsonLdProduct {
+  name?: string;
+  aggregateRating?: {
+    ratingValue?: string | number;
+    reviewCount?: string | number;
+    ratingCount?: string | number;
+  };
+}
+
+interface TrendyolJsonLdOffer {
+  price?: string | number;
+  priceCurrency?: string;
+}
+
 export class TrendyolScraper extends BaseScraper {
   canHandle(url: string): boolean {
     return (
@@ -27,26 +41,37 @@ export class TrendyolScraper extends BaseScraper {
     );
   }
 
+  override getAddToCartSelectors(): string[] {
+    return [
+      ".add-to-basket",
+      ".pdp-add-to-basket",
+      'button[class*="add-to-basket"]',
+      'button[class*="AddToBasket"]',
+      'button[data-testid="add-to-cart-button"]',
+    ];
+  }
+
   scrape(): ScrapedProduct | null {
     try {
+      const product = this.getJsonLdProduct();
+      const offer = this.getJsonLdOffer(product);
+      const productId = this.extractProductId();
+      const reviewCount = this.extractReviewCount(product);
+      const imageUrl = this.extractImageUrl(product);
       return {
         url: window.location.href,
-        productId: this.extractProductId(),
-        product_id: this.extractProductId(),
-        name: this.extractProductName(),
-        price: this.extractPrice(),
-        currency: "TRY",
-        rating: this.extractRating(),
-        reviewCount: this.extractReviewCount(),
-        review_count: this.extractReviewCount(),
+        productId,
+        product_id: productId,
+        name: this.extractProductName(product),
+        price: this.extractPrice(offer),
+        currency: offer?.priceCurrency ?? "TRY",
+        rating: this.extractRating(product),
+        reviewCount,
+        review_count: reviewCount,
         seller: this.safeQueryText(".merchant-text"),
         category: this.extractCategory(),
-        imageUrl:
-          this.safeQueryAttr(".base-product-image img", "src") ??
-          this.safeQueryAttr("picture source", "srcset"),
-        image_url:
-          this.safeQueryAttr(".base-product-image img", "src") ??
-          this.safeQueryAttr("picture source", "srcset"),
+        imageUrl,
+        image_url: imageUrl,
         specs: this.extractSpecs(),
         reviews: this.extractReviews(),
         scrapedAt: new Date().toISOString(),
@@ -69,12 +94,20 @@ export class TrendyolScraper extends BaseScraper {
     return demoMatch?.[1] ?? `trendyol_${Date.now()}`;
   }
 
-  private extractProductName(): string | null {
+  private extractProductName(product: TrendyolJsonLdProduct | null): string | null {
     const heading = document.querySelector("h1.pr-new-br");
     const seller = this.safeQueryText(".merchant-text");
 
     if (!heading) {
-      return this.safeQueryText(".pr-new-br span");
+      return (
+        this.safeQueryText(".pr-new-br span") ??
+        product?.name?.trim() ??
+        this.getMetaContent(
+          'meta[property="og:title"]',
+          'meta[name="title"]',
+          'meta[name="twitter:title"]',
+        )
+      );
     }
 
     const childTexts = Array.from(heading.childNodes)
@@ -95,7 +128,12 @@ export class TrendyolScraper extends BaseScraper {
     return combined;
   }
 
-  private extractPrice(): number | null {
+  private extractPrice(offer: TrendyolJsonLdOffer | null): number | null {
+    if (offer?.price !== undefined) {
+      const parsed = this.parsePrice(String(offer.price));
+      if (parsed !== null) return parsed;
+    }
+
     const discounted = this.safeQueryText(".prc-dsc");
     if (discounted) return this.parsePrice(discounted);
 
@@ -106,10 +144,17 @@ export class TrendyolScraper extends BaseScraper {
     const anyPrice = this.safeQueryText("[class*='prc']");
     if (anyPrice && anyPrice.includes("TL")) return this.parsePrice(anyPrice);
 
-    return null;
+    const metaPrice = this.getMetaContent('meta[property="product:price:amount"]');
+    return metaPrice ? this.parsePrice(metaPrice) : null;
   }
 
-  private extractRating(): number | null {
+  private extractRating(product: TrendyolJsonLdProduct | null): number | null {
+    const jsonLdRating = product?.aggregateRating?.ratingValue;
+    if (jsonLdRating !== undefined) {
+      const parsed = parseFloat(String(jsonLdRating).replace(",", "."));
+      if (!Number.isNaN(parsed)) return parsed;
+    }
+
     const ratingText =
       this.safeQueryText(".rating-line-count .tlp-text") ??
       this.safeQueryText(".pr-rnr-sm-txt") ??
@@ -120,7 +165,14 @@ export class TrendyolScraper extends BaseScraper {
     return isNaN(num) ? null : num;
   }
 
-  private extractReviewCount(): number | null {
+  private extractReviewCount(product: TrendyolJsonLdProduct | null): number | null {
+    const jsonLdCount =
+      product?.aggregateRating?.reviewCount ?? product?.aggregateRating?.ratingCount;
+    if (jsonLdCount !== undefined) {
+      const parsed = parseInt(String(jsonLdCount), 10);
+      if (!Number.isNaN(parsed)) return parsed;
+    }
+
     const countText = this.safeQueryText(".rvw-cnt-tx");
     if (!countText) return null;
     const match = countText.match(/\d+/);
@@ -137,6 +189,15 @@ export class TrendyolScraper extends BaseScraper {
       return last.textContent?.trim() ?? null;
     }
     return null;
+  }
+
+  private extractImageUrl(product: TrendyolJsonLdProduct | null): string | null {
+    return (
+      this.readJsonLdImage(product) ??
+      this.safeQueryAttr(".base-product-image img", "src") ??
+      this.safeQueryAttr("picture source", "srcset") ??
+      this.getMetaContent('meta[property="og:image"]')
+    );
   }
 
   private extractSpecs(): Record<string, string> {

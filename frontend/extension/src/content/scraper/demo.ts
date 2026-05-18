@@ -9,10 +9,15 @@ import type { ScrapedProduct } from "../../shared/types";
 
 export class DemoScraper extends BaseScraper {
   canHandle(url: string): boolean {
-    return (
-      url.startsWith("http://localhost:3001/product/") ||
-      Boolean(document.querySelector("[data-product-name]"))
-    );
+    return url.includes("localhost:3001/product/");
+  }
+
+  override getAddToCartSelectors(): string[] {
+    return [
+      "[data-add-to-cart]",
+      'button[data-action="add-to-cart"]',
+      'button[data-testid="add-to-cart"]',
+    ];
   }
 
   scrape(): ScrapedProduct | null {

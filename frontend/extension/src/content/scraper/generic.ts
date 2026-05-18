@@ -43,9 +43,74 @@ interface PartialData {
 }
 
 export class GenericScraper extends BaseScraper {
-  /** Generic scraper always reports it can handle any URL. */
-  canHandle(_url: string): boolean {
-    return true;
+  /**
+   * Only activate when the page has a clear product signal AND the host is
+   * a known shopping site. Prevents the FAB from appearing on cart,
+   * checkout, listing pages, and any non-shopping site that happens to
+   * include Product structured data (blogs, reviews, etc.).
+   */
+  canHandle(): boolean {
+    if (!this.isShoppingHost()) return false;
+    return (
+      this.hasJsonLdProduct() ||
+      this.hasOpenGraphProduct() ||
+      this.hasMicrodataProduct()
+    );
+  }
+
+  override getAddToCartSelectors(): string[] {
+    return [
+      "#add-to-cart-button",
+      'input[name="submit.add-to-cart"]',
+      '[data-testid="x-atc-action"]',
+      "#atcRedesignId_btn",
+      "#binBtn_btn",
+      ".btnAddBasket",
+      'button[class*="addBasket"]',
+      'button[id*="add-to-cart"]',
+      'button[class*="add-to-cart"]',
+      'button[class*="addToCart"]',
+    ];
+  }
+
+  private isShoppingHost(): boolean {
+    const host = window.location.hostname.toLowerCase();
+    const SHOPPING_HOSTS = [
+      "trendyol.com",
+      "amazon.com.tr",
+      "hepsiburada.com",
+      "n11.com",
+    ];
+    if (SHOPPING_HOSTS.some((domain) => host === domain || host.endsWith(`.${domain}`))) {
+      return true;
+    }
+    return false;
+  }
+
+  private hasJsonLdProduct(): boolean {
+    try {
+      const scripts = document.querySelectorAll('script[type="application/ld+json"]');
+      for (const script of scripts) {
+        const data = JSON.parse(script.textContent ?? "{}") as { "@type"?: string };
+        if (data["@type"] === "Product") return true;
+      }
+    } catch {
+      // ignore
+    }
+    return false;
+  }
+
+  private hasOpenGraphProduct(): boolean {
+    const ogType = document.querySelector<HTMLMetaElement>(
+      'meta[property="og:type"]',
+    )?.content;
+    return ogType === "product" || ogType === "og:product";
+  }
+
+  private hasMicrodataProduct(): boolean {
+    return Boolean(
+      document.querySelector('[itemtype*="schema.org/Product"]'),
+    );
   }
 
   scrape(): ScrapedProduct | null {

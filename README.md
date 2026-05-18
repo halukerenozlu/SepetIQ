@@ -71,6 +71,26 @@ Product Context → Review Risk → Behavior Profile
 
 ---
 
+## Hackathon Demo Site Coverage
+
+For the hackathon demo, the extension is optimized for a focused set of real
+shopping sites instead of broad production coverage:
+
+| Site | Scope |
+| ---- | ----- |
+| n11 | Product pages |
+| Trendyol | Product pages |
+| Hepsiburada | Product pages |
+| Amazon Turkey | `amazon.com.tr` product pages |
+| Local demo store | `localhost:3001/product/*` |
+
+This list is intentionally small: the goal is to prove that SepetIQ can read
+real product pages, open the decision panel, and run the agentic analysis flow
+reliably during a 5-minute demo. Wider marketplace support is a post-hackathon
+hardening task.
+
+---
+
 ## Tech Stack
 
 | Layer     | Technology                                             | Package Manager |

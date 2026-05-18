@@ -12,6 +12,7 @@ interface DecisionPanelProps {
   status: AnalysisStatus;
   questions?: NeedQuestion[];
   decisionId?: string;
+  isSlowWarning?: boolean;
   onAnswerSubmit: (answers: Record<string, string>) => void;
   onRetry: () => void;
   onClose: () => void;
@@ -126,7 +127,7 @@ export function DecisionPanel({
   events,
   status,
   questions = [],
-  decisionId: _decisionId,
+  isSlowWarning = false,
   onAnswerSubmit,
   onRetry,
   onClose,
@@ -167,7 +168,14 @@ export function DecisionPanel({
 
       <main className="panel-body">
         {(status === "idle" || status === "analyzing") && (
-          <AgentProgressList progress={progress} />
+          <>
+            {isSlowWarning && (
+              <div className="slow-warning">
+                ⏱ Beklenenden uzun sürüyor...
+              </div>
+            )}
+            <AgentProgressList progress={progress} />
+          </>
         )}
 
         {status === "questions" && (
@@ -211,9 +219,6 @@ function AgentProgressList({ progress }: { progress: AgentProgress[] }) {
             <span className="agent-name">{agent.label}</span>
             {agent.summary && <span className="agent-summary">{agent.summary}</span>}
           </span>
-          {agent.durationMs !== undefined && (
-            <span className="duration">{formatDuration(agent.durationMs)}</span>
-          )}
         </li>
       ))}
     </ol>
@@ -297,11 +302,6 @@ function VerdictStep({ verdict, mode }: { verdict: VerdictData; mode: AnalysisMo
       </div>
     </div>
   );
-}
-
-function formatDuration(durationMs: number): string {
-  if (durationMs < 1000) return `${durationMs} ms`;
-  return `${(durationMs / 1000).toFixed(1)} sn`;
 }
 
 function getStatusText(status: AnalysisStatus): string {
@@ -440,7 +440,7 @@ const styles = `
 
   .agent-row {
     display: grid;
-    grid-template-columns: 28px minmax(0, 1fr) auto;
+    grid-template-columns: 28px minmax(0, 1fr);
     align-items: center;
     gap: 9px;
     min-height: 52px;
@@ -497,10 +497,19 @@ const styles = `
     font-size: 12px;
   }
 
-  .duration {
-    color: #6b7280;
-    font-size: 11px;
-    font-weight: 650;
+  .slow-warning {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+    border-radius: 8px;
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    color: #92400e;
+    font-size: 12px;
+    font-weight: 700;
+    animation: fade-in 200ms ease-out;
   }
 
   .question-step {
@@ -625,6 +634,8 @@ const styles = `
     justify-content: center;
     border: 8px solid currentColor;
     background: #ffffff;
+    will-change: transform;
+    animation: score-pop 420ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
   }
 
   .score-circle span {
@@ -704,14 +715,18 @@ const styles = `
     to { transform: rotate(360deg); }
   }
 
+  @keyframes score-pop {
+    from { opacity: 0; transform: scale(0.65); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
   @keyframes fade-in {
     from { opacity: 0; transform: translateY(4px); }
     to { opacity: 1; transform: translateY(0); }
   }
 
   @keyframes panel-in {
-    from { opacity: 0; transform: translate(8px, -50%); }
+    from { opacity: 0; transform: translate(32px, -50%); }
     to { opacity: 1; transform: translate(0, -50%); }
   }
 `;
-

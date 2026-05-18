@@ -156,7 +156,10 @@ export default async function ProductPage({ params }: PageProps) {
 
             {/* Buttons */}
             <div className="flex gap-4 mt-4">
-              <button className="flex-1 bg-[#f27a1a] text-white font-bold py-4 rounded-lg hover:bg-[#e67317] transition-colors">
+              <button
+                data-add-to-cart
+                className="flex-1 bg-[#f27a1a] text-white font-bold py-4 rounded-lg hover:bg-[#e67317] transition-colors"
+              >
                 Sepete Ekle
               </button>
               <button className="w-12 h-12 border rounded-lg flex items-center justify-center text-gray-400 hover:text-red-500 transition-colors">
