@@ -2,86 +2,109 @@
   {
     "id": "p-1001",
     "slug": "aurora-airbuds-kablosuz-kulaklik",
-    "ad": "Aurora AirBuds Kablosuz Kulaklık",
+    "ad": "Aurora AirBuds Kablosuz Kulaklik",
+    "kategori": "Elektronik",
     "fiyat": 799.9,
-    "aciklama": "Günlük kullanım, toplantılar ve yolculuklar için aktif gürültü azaltma destekli hafif kablosuz kulaklık.",
+    "aciklama": "Gunluk kullanim, toplantilar ve yolculuklar icin aktif gurultu azaltma destekli hafif kablosuz kulaklik.",
     "ozellikler": [
-      "Aktif gürültü azaltma",
-      "24 saate kadar kutulu kullanım",
-      "Bluetooth 5.3 bağlantı",
-      "IPX4 sıçrama dayanımı",
-      "USB-C hızlı şarj"
+      "Aktif gurultu azaltma",
+      "24 saate kadar kutulu kullanim",
+      "Bluetooth 5.3 baglanti",
+      "IPX4 sicrama dayanimi",
+      "USB-C hizli sarj"
     ],
     "gorselUrl": "https://placehold.co/900x900/f8fafc/111827?text=Kablosuz+Kulaklik",
     "ortalamaPuan": 4.2,
     "satici": {
       "ad": "TeknoSepet",
       "puan": 9.3,
-      "konum": "İstanbul"
+      "konum": "Istanbul"
+    },
+    "scenario": {
+      "id": "similar-regret",
+      "demoGoal": "Gecmis pismanlik",
+      "trigger": "Kullanici 3 ay once benzer kulaklik aldi, nadiren kullandi ve memnun kalmadi.",
+      "expectedVerdict": "wait",
+      "riskSignals": [
+        "similar_purchase_regretted",
+        "repeated_positive_reviews",
+        "durability_complaints"
+      ],
+      "storefrontSignals": [
+        "Son baktigin urunlere benziyor",
+        "Kulaklik kategorisinde onceki siparis bulundu",
+        "Bugune ozel kupon uygulanabilir"
+      ],
+      "stockLabel": "Son 6 urun",
+      "couponLabel": "Sepette %12 kupon",
+      "shippingLabel": "Yarin kargoda",
+      "returnLabel": "14 gun kolay iade",
+      "viewCountLabel": "Bugun 184 kisi inceledi"
     },
     "yorumlar": [
       {
-        "yazar": "Ayşe K.",
+        "yazar": "Ayse K.",
         "puan": 5,
         "tarih": "2026-05-02",
-        "metin": "Harika ürün, tavsiye ederim. Ses kalitesi bu fiyata göre çok iyi."
+        "metin": "Harika urun, tavsiye ederim. Ses kalitesi bu fiyata gore cok iyi."
       },
       {
         "yazar": "Mert A.",
         "puan": 5,
         "tarih": "2026-04-28",
-        "metin": "Harika ürün, tavsiye ederim. Toplantılarda mikrofonu net çalışıyor."
+        "metin": "Harika urun, tavsiye ederim. Toplantilarda mikrofonu net calisiyor."
       },
       {
         "yazar": "Selin D.",
         "puan": 4,
         "tarih": "2026-04-17",
-        "metin": "Harika ürün, tavsiye ederim. Kutusu küçük ve taşıması kolay."
+        "metin": "Harika urun, tavsiye ederim. Kutusu kucuk ve tasimasi kolay."
       },
       {
         "yazar": "Can E.",
         "puan": 1,
         "tarih": "2026-03-30",
-        "metin": "2 ayda bozuldu, iade ettim. Sol kulaklık bağlantıyı kesmeye başladı."
+        "metin": "2 ayda bozuldu, iade ettim. Sol kulaklik baglantiyi kesmeye basladi."
       },
       {
         "yazar": "Burcu T.",
         "puan": 2,
         "tarih": "2026-03-21",
-        "metin": "2 ayda bozuldu, iade ettim. Şarj kutusu beklediğimden zayıf çıktı."
+        "metin": "2 ayda bozuldu, iade ettim. Sarj kutusu bekledigimden zayif cikti."
       },
       {
         "yazar": "Onur S.",
         "puan": 3,
         "tarih": "2026-04-05",
-        "metin": "Fiyatına göre idare eder. Müzik için iyi ama gürültü azaltma orta seviyede."
+        "metin": "Fiyatina gore idare eder. Muzik icin iyi ama gurultu azaltma orta seviyede."
       },
       {
         "yazar": "Ece N.",
         "puan": 3,
         "tarih": "2026-03-14",
-        "metin": "Fiyatına göre idare eder. Plastik kalitesi daha iyi olabilirdi."
+        "metin": "Fiyatina gore idare eder. Plastik kalitesi daha iyi olabilirdi."
       },
       {
-        "yazar": "MegaFırsat",
+        "yazar": "MegaFirsat",
         "puan": 5,
         "tarih": "2026-05-05",
-        "metin": "EN İYİ ÜRÜN HEMEN ALIN!!! STOK BİTMEDEN KAÇIRMAYIN!!!"
+        "metin": "EN IYI URUN HEMEN ALIN!!! STOK BITMEDEN KACIRMAYIN!!!"
       }
     ]
   },
   {
     "id": "p-2001",
     "slug": "nova-x1-akilli-telefon",
-    "ad": "Nova X1 Akıllı Telefon",
+    "ad": "Nova X1 Akilli Telefon",
+    "kategori": "Elektronik",
     "fiyat": 24999,
-    "aciklama": "Yüksek yenileme hızlı ekranı, güçlü işlemcisi ve uzun pil ömrüyle yoğun kullanım için tasarlanmış akıllı telefon.",
+    "aciklama": "Yuksek yenileme hizli ekrani, guclu islemcisi ve uzun pil omruyle yogun kullanim icin tasarlanmis akilli telefon.",
     "ozellikler": [
-      "6.7 inç AMOLED 120 Hz ekran",
+      "6.7 inc AMOLED 120 Hz ekran",
       "256 GB depolama",
       "50 MP optik sabitlemeli kamera",
       "5000 mAh pil",
-      "5G bağlantı desteği"
+      "5G baglanti destegi"
     ],
     "gorselUrl": "https://placehold.co/900x900/eef2ff/111827?text=Akilli+Telefon",
     "ortalamaPuan": 4.1,
@@ -90,54 +113,63 @@
       "puan": 9.1,
       "konum": "Ankara"
     },
+    "scenario": {
+      "id": "budget-pressure",
+      "demoGoal": "Butce baskisi",
+      "trigger": "Urun kaliteli olsa bile kullanicinin kalan aylik butcesini ciddi sekilde asiyor.",
+      "expectedVerdict": "dont_buy",
+      "riskSignals": [
+        "price_exceeds_remaining_budget",
+        "high_monthly_spend",
+        "discount_pressure"
+      ],
+      "storefrontSignals": [
+        "Bankaya ozel 6 taksit",
+        "Sinirli sureli indirim",
+        "Yuksek fiyatli elektronik kategorisi"
+      ],
+      "stockLabel": "Son 3 urun",
+      "couponLabel": "Bugun 2.000 TL indirim",
+      "shippingLabel": "Ucretsiz ekspres kargo",
+      "returnLabel": "Kurulum sonrasi iade kisitli",
+      "viewCountLabel": "Son 1 saatte 72 kisi sepete ekledi"
+    },
     "yorumlar": [
       {
         "yazar": "Deniz Y.",
         "puan": 5,
         "tarih": "2026-05-01",
-        "metin": "Harika ürün, tavsiye ederim. Ekran parlaklığı ve pil performansı çok başarılı."
+        "metin": "Ekran parlakligi ve pil performansi cok basarili, ama fiyat yuksek."
       },
       {
         "yazar": "Gizem B.",
         "puan": 5,
         "tarih": "2026-04-25",
-        "metin": "Harika ürün, tavsiye ederim. Kamera gece çekimlerinde beklediğimden iyi."
+        "metin": "Kamera gece cekimlerinde bekledigimden iyi."
       },
       {
         "yazar": "Umut C.",
         "puan": 4,
         "tarih": "2026-04-19",
-        "metin": "Harika ürün, tavsiye ederim. Oyunlarda ısınma az, ekran çok akıcı."
+        "metin": "Oyunlarda isinma az, ekran cok akici."
       },
       {
         "yazar": "Elif R.",
         "puan": 1,
         "tarih": "2026-03-29",
-        "metin": "2 ayda bozuldu, iade ettim. Kamera uygulaması sürekli donuyordu."
+        "metin": "Kamera uygulamasi surekli donuyordu, iade sureci de uzun surdu."
       },
       {
         "yazar": "Kerem P.",
         "puan": 2,
         "tarih": "2026-03-22",
-        "metin": "2 ayda bozuldu, iade ettim. Şarj soketinde temassızlık başladı."
+        "metin": "Sarj soketinde temassizlik basladi."
       },
       {
-        "yazar": "Naz M.",
-        "puan": 3,
-        "tarih": "2026-04-03",
-        "metin": "Fiyatına göre idare eder. Performansı iyi ama kutudan adaptör çıkmaması eksi."
-      },
-      {
-        "yazar": "Arda L.",
-        "puan": 3,
-        "tarih": "2026-03-16",
-        "metin": "Fiyatına göre idare eder. Kamera güzel, yazılım güncellemeleri daha sık olmalı."
-      },
-      {
-        "yazar": "TelefonKralı",
+        "yazar": "TelefonKrali",
         "puan": 5,
         "tarih": "2026-05-06",
-        "metin": "EN İYİ ÜRÜN HEMEN ALIN!!! BU FİYATA BAŞKA YOK!!!"
+        "metin": "EN IYI URUN HEMEN ALIN!!! BU FIYATA BASKA YOK!!!"
       }
     ]
   },
@@ -145,70 +177,696 @@
     "id": "p-3001",
     "slug": "orbit-mk75-mekanik-klavye",
     "ad": "Orbit MK75 Mekanik Klavye",
+    "kategori": "Elektronik",
     "fiyat": 1499.5,
-    "aciklama": "Kompakt yüzde 75 dizilim, hot-swap switch desteği ve sessizleştirilmiş kasa yapısıyla masaüstü kullanım için mekanik klavye.",
+    "aciklama": "Kompakt yuzde 75 dizilim, hot-swap switch destegi ve sessizlestirilmis kasa yapisiyla masaustu kullanim icin mekanik klavye.",
     "ozellikler": [
-      "75% kompakt Türkçe Q dizilim",
+      "75% kompakt Turkce Q dizilim",
       "Hot-swap mekanik switch",
-      "RGB aydınlatma profilleri",
-      "Çift katman PBT tuş takımı",
-      "Kablolu USB-C bağlantı"
+      "RGB aydinlatma profilleri",
+      "Cift katman PBT tus takimi",
+      "Kablolu USB-C baglanti"
     ],
     "gorselUrl": "https://placehold.co/900x900/ecfeff/111827?text=Mekanik+Klavye",
     "ortalamaPuan": 4.3,
     "satici": {
-      "ad": "OyunMasası",
+      "ad": "OyunMasasi",
       "puan": 9.5,
-      "konum": "İzmir"
+      "konum": "Izmir"
+    },
+    "scenario": {
+      "id": "reasonable-buy",
+      "demoGoal": "Alinabilir karar",
+      "trigger": "Fiyat makul, risk dusuk ve planli kullanici icin ihtiyac sinyali guclu.",
+      "expectedVerdict": "conditional_buy",
+      "riskSignals": [
+        "low_budget_pressure",
+        "work_relevance",
+        "moderate_noise_complaints"
+      ],
+      "storefrontSignals": [
+        "Ofis ve oyun icin uygun",
+        "Satici puani yuksek",
+        "Iade ve garanti kosullari net"
+      ],
+      "stockLabel": "Stokta 24 urun",
+      "couponLabel": "Sepette 150 TL kupon",
+      "shippingLabel": "Bugun kargoda",
+      "returnLabel": "30 gun kolay iade",
+      "viewCountLabel": "Bu hafta 48 kisi favoriledi"
     },
     "yorumlar": [
       {
         "yazar": "Bora H.",
         "puan": 5,
         "tarih": "2026-05-03",
-        "metin": "Harika ürün, tavsiye ederim. Tuş hissi tok ve yazım deneyimi çok rahat."
+        "metin": "Tus hissi tok ve yazim deneyimi cok rahat."
       },
       {
-        "yazar": "İrem V.",
+        "yazar": "Irem V.",
         "puan": 5,
         "tarih": "2026-04-27",
-        "metin": "Harika ürün, tavsiye ederim. Masada az yer kaplıyor, aydınlatması sade."
+        "metin": "Masada az yer kapliyor, aydinlatmasi sade."
       },
       {
         "yazar": "Kaan F.",
         "puan": 4,
         "tarih": "2026-04-18",
-        "metin": "Harika ürün, tavsiye ederim. Switch değiştirme kolay, kablosu kaliteli."
+        "metin": "Switch degistirme kolay, kablosu kaliteli."
       },
       {
         "yazar": "Seda O.",
-        "puan": 1,
+        "puan": 3,
         "tarih": "2026-03-31",
-        "metin": "2 ayda bozuldu, iade ettim. Bazı tuşlar çift basmaya başladı."
+        "metin": "Ses seviyesi ofis icin biraz yuksek kalabilir."
       },
       {
         "yazar": "Tolga G.",
-        "puan": 2,
+        "puan": 4,
         "tarih": "2026-03-23",
-        "metin": "2 ayda bozuldu, iade ettim. RGB yazılımı bilgisayarımda kararsız çalıştı."
+        "metin": "RGB yazilimi sade ama temel ayarlar yeterli."
+      }
+    ]
+  },
+  {
+    "id": "p-4001",
+    "slug": "pulse-watch-s-akilli-saat",
+    "ad": "Pulse Watch S Akilli Saat",
+    "kategori": "Elektronik",
+    "fiyat": 6999,
+    "aciklama": "Spor, uyku ve bildirim takibi icin tasarlanmis AMOLED ekranli akilli saat.",
+    "ozellikler": [
+      "AMOLED always-on ekran",
+      "7 gun pil omru",
+      "Uyku ve stres takibi",
+      "50 metre su dayanimi",
+      "GPS destekli antrenman modu"
+    ],
+    "gorselUrl": "https://placehold.co/900x900/f0fdf4/111827?text=Akilli+Saat",
+    "ortalamaPuan": 4.4,
+    "satici": {
+      "ad": "FitTekno",
+      "puan": 9.0,
+      "konum": "Istanbul"
+    },
+    "scenario": {
+      "id": "unused-similar-product",
+      "demoGoal": "Kullanilmayan benzer urun",
+      "trigger": "Kullanici 6 ay once akilli saat aldi ve hic kullanmadi.",
+      "expectedVerdict": "dont_buy",
+      "riskSignals": [
+        "unused_similar_purchase",
+        "fitness_aspiration_gap",
+        "limited_return_window"
+      ],
+      "storefrontSignals": [
+        "Saglik hedefleri icin populer",
+        "Bugun son kampanya",
+        "Benzer urun gecmisi var"
+      ],
+      "stockLabel": "Son 8 urun",
+      "couponLabel": "Fitness haftasi indirimi",
+      "shippingLabel": "Yarin teslim",
+      "returnLabel": "Paket acilinca iade kontrolu gerekir",
+      "viewCountLabel": "Bugun 296 kisi inceledi"
+    },
+    "yorumlar": [
+      {
+        "yazar": "Nil S.",
+        "puan": 5,
+        "tarih": "2026-05-04",
+        "metin": "Ekrani cok parlak, bildirimleri kacirmiyorum."
       },
       {
-        "yazar": "Melis Ş.",
-        "puan": 3,
-        "tarih": "2026-04-07",
-        "metin": "Fiyatına göre idare eder. Ses seviyesi ofis için biraz yüksek kalabilir."
+        "yazar": "Ozan T.",
+        "puan": 4,
+        "tarih": "2026-04-22",
+        "metin": "Spor takibi iyi ama ilk kurulum biraz ugrastirdi."
       },
       {
-        "yazar": "Emre Z.",
-        "puan": 3,
-        "tarih": "2026-03-19",
-        "metin": "Fiyatına göre idare eder. Malzeme iyi ama bilek desteği olmaması eksik."
+        "yazar": "Lara M.",
+        "puan": 2,
+        "tarih": "2026-04-02",
+        "metin": "Uyku verileri tutarsiz geldi, bir hafta sonra kullanmayi biraktim."
       },
       {
-        "yazar": "KlavyeUzmanı",
+        "yazar": "FitFirsat",
+        "puan": 5,
+        "tarih": "2026-05-06",
+        "metin": "HAYATINIZI DEGISTIRECEK SAAT!!! BUGUN ALIN!!!"
+      }
+    ]
+  },
+  {
+    "id": "p-5001",
+    "slug": "glowpro-cilt-bakim-cihazi",
+    "ad": "GlowPro Cilt Bakim Cihazi",
+    "kategori": "Kozmetik",
+    "fiyat": 3499,
+    "aciklama": "Evde cilt bakim rutini icin isitma, titresim ve LED terapi modlari sunan kompakt bakim cihazi.",
+    "ozellikler": [
+      "3 LED terapi modu",
+      "Hassas cilt modu",
+      "USB-C sarj",
+      "Silikon baslik",
+      "10 dakikalik otomatik kapanma"
+    ],
+    "gorselUrl": "https://placehold.co/900x900/fdf2f8/111827?text=Cilt+Bakim",
+    "ortalamaPuan": 4.6,
+    "satici": {
+      "ad": "GlowMarket",
+      "puan": 8.7,
+      "konum": "Bursa"
+    },
+    "scenario": {
+      "id": "review-risk",
+      "demoGoal": "Yorum riski",
+      "trigger": "Yuksek puana ragmen yorumlarda tahris, iade ve tekrar eden influencer dili var.",
+      "expectedVerdict": "wait",
+      "riskSignals": [
+        "skin_irritation_reports",
+        "influencer_language",
+        "return_complaints",
+        "overly_positive_review_cluster"
+      ],
+      "storefrontSignals": [
+        "Influencer kodu aktif",
+        "Hassas cilt uyarisi yorumlarda geciyor",
+        "Yuksek puan ama riskli yorum kumesi var"
+      ],
+      "stockLabel": "Son 11 urun",
+      "couponLabel": "GLOW15 kodu ile indirim",
+      "shippingLabel": "Ayni gun kargo",
+      "returnLabel": "Hijyen urunlerinde iade incelemesi",
+      "viewCountLabel": "Son 24 saatte 510 kisi goruntulendi"
+    },
+    "yorumlar": [
+      {
+        "yazar": "Derya P.",
+        "puan": 5,
+        "tarih": "2026-05-05",
+        "metin": "Influencer onerisiyle aldim, ilk hafta cildim parlak gorundu."
+      },
+      {
+        "yazar": "Seda K.",
+        "puan": 5,
+        "tarih": "2026-05-03",
+        "metin": "Harika urun, kesinlikle alin. Kodla cok uyguna geldi."
+      },
+      {
+        "yazar": "Meltem A.",
+        "puan": 2,
+        "tarih": "2026-04-20",
+        "metin": "Hassas cildimde kizariklik yapti, iade sureci hijyen gerekcesiyle uzadi."
+      },
+      {
+        "yazar": "Eylul C.",
+        "puan": 1,
+        "tarih": "2026-04-12",
+        "metin": "Ikinci kullanimda tahris oldu, doktoruma danismadan almamam gerekirdi."
+      },
+      {
+        "yazar": "GlowQueen",
         "puan": 5,
         "tarih": "2026-05-07",
-        "metin": "EN İYİ ÜRÜN HEMEN ALIN!!! PROFESYONELLERİN TERCİHİ!!!"
+        "metin": "HERKESIN ALMASI GEREKEN CILT SIRRI!!! STOKLAR BITMEDEN!!!"
+      }
+    ]
+  },
+  {
+    "id": "p-6001",
+    "slug": "zenbrush-pro-sonik-dis-fircasi",
+    "ad": "ZenBrush Pro Sonik Dis Fircasi",
+    "kategori": "Kozmetik",
+    "fiyat": 2299,
+    "aciklama": "Akilli basinc sensoru, 5 temizlik modu ve uygulama takip ozelligi olan sarjli sonik dis fircasi.",
+    "ozellikler": [
+      "5 fircalama modu",
+      "Basinc sensoru",
+      "90 gun pil omru",
+      "Uygulama ile takip",
+      "2 yedek baslik"
+    ],
+    "gorselUrl": "https://placehold.co/900x900/eff6ff/111827?text=Dis+Fircasi",
+    "ortalamaPuan": 4.5,
+    "satici": {
+      "ad": "BakimKutusu",
+      "puan": 9.2,
+      "konum": "Istanbul"
+    },
+    "scenario": {
+      "id": "routine-fit",
+      "demoGoal": "Rutin uyumu",
+      "trigger": "Urun pahali ama kullanicinin duzenli bakim rutini ve memnuniyet gecmisiyle uyumlu.",
+      "expectedVerdict": "conditional_buy",
+      "riskSignals": [
+        "moderate_price",
+        "recurring_head_cost",
+        "routine_compatibility"
+      ],
+      "storefrontSignals": [
+        "Yedek baslik aboneligi oneriliyor",
+        "Dis bakim kategorisinde duzenli kullanim sinyali",
+        "Satici puani yuksek"
+      ],
+      "stockLabel": "Stokta 18 urun",
+      "couponLabel": "Sepette 250 TL indirim",
+      "shippingLabel": "Bugun kargoda",
+      "returnLabel": "Hijyen urunlerinde paket acilmamali",
+      "viewCountLabel": "Bu hafta 92 kisi favoriledi"
+    },
+    "yorumlar": [
+      {
+        "yazar": "Buse N.",
+        "puan": 5,
+        "tarih": "2026-05-04",
+        "metin": "Basinc uyarisi sayesinde dis etlerimi daha az zorluyorum."
+      },
+      {
+        "yazar": "Kubilay R.",
+        "puan": 4,
+        "tarih": "2026-04-26",
+        "metin": "Temizligi iyi ama yedek basliklar biraz pahali."
+      },
+      {
+        "yazar": "Pelin A.",
+        "puan": 5,
+        "tarih": "2026-04-20",
+        "metin": "Sarji uzun gidiyor, seyahatlerde rahat."
+      },
+      {
+        "yazar": "OralStar",
+        "puan": 5,
+        "tarih": "2026-05-08",
+        "metin": "DIS HEKIMLERININ TERCIHI!!! KACIRMAYIN!!!"
+      }
+    ]
+  },
+  {
+    "id": "p-7001",
+    "slug": "lumina-mini-led-masa-lambasi",
+    "ad": "Lumina Mini LED Masa Lambasi",
+    "kategori": "Elektronik",
+    "fiyat": 649,
+    "aciklama": "Ayarlanabilir renk sicakligi, USB-C sarj ve katlanabilir govdeyle calisma masalari icin kompakt LED lamba.",
+    "ozellikler": [
+      "3 renk sicakligi",
+      "Kademeli parlaklik",
+      "Katlanabilir govde",
+      "USB-C sarj",
+      "Dokunmatik kontrol"
+    ],
+    "gorselUrl": "https://placehold.co/900x900/fff7ed/111827?text=Masa+Lambasi",
+    "ortalamaPuan": 4.0,
+    "satici": {
+      "ad": "EvOfis",
+      "puan": 8.9,
+      "konum": "Ankara"
+    },
+    "scenario": {
+      "id": "low-price-impulse",
+      "demoGoal": "Dusuk fiyat impulsu",
+      "trigger": "Fiyat dusuk oldugu icin risksiz gorunuyor ama kullanicinin benzer kucuk elektronik birikimi var.",
+      "expectedVerdict": "wait",
+      "riskSignals": [
+        "small_purchase_impulse",
+        "duplicate_accessory_pattern",
+        "limited_need_signal"
+      ],
+      "storefrontSignals": [
+        "Sepete eklemek kolay hissettiren dusuk fiyat",
+        "Ofis aksesuarlarinda tekrar eden alisveris sinyali",
+        "Kucuk urun ama birikimli harcama riski"
+      ],
+      "stockLabel": "Stokta 41 urun",
+      "couponLabel": "2 alana %10 indirim",
+      "shippingLabel": "Yarin teslim",
+      "returnLabel": "14 gun kolay iade",
+      "viewCountLabel": "Son 3 saatte 63 kisi inceledi"
+    },
+    "yorumlar": [
+      {
+        "yazar": "Ata B.",
+        "puan": 4,
+        "tarih": "2026-05-01",
+        "metin": "Masada az yer kapliyor, isigi yeterli."
+      },
+      {
+        "yazar": "Sinem G.",
+        "puan": 3,
+        "tarih": "2026-04-18",
+        "metin": "Fiyatina gore iyi ama govde malzemesi hafif."
+      },
+      {
+        "yazar": "Emir L.",
+        "puan": 2,
+        "tarih": "2026-04-09",
+        "metin": "Sarj soketi gevsek geldi, masada surekli kabloyla kullaniyorum."
+      },
+      {
+        "yazar": "OfisFirsat",
+        "puan": 5,
+        "tarih": "2026-05-06",
+        "metin": "MASANIZIN OLMAZSA OLMAZI!!! HEMEN ALIN!!!"
+      }
+    ]
+  },
+  {
+    "id": "p-8001",
+    "slug": "aerofit-akilli-tarti",
+    "ad": "AeroFit Akilli Tarti",
+    "kategori": "Elektronik",
+    "fiyat": 1199,
+    "aciklama": "Vucut kompozisyonu, kilo trendi ve uygulama senkronizasyonu sunan Bluetooth destekli akilli tarti.",
+    "ozellikler": [
+      "Bluetooth senkronizasyon",
+      "12 vucut olcumu",
+      "Coklu kullanici profili",
+      "Cam yuzey",
+      "Haftalik trend raporu"
+    ],
+    "gorselUrl": "https://placehold.co/900x900/f1f5f9/111827?text=Akilli+Tarti",
+    "ortalamaPuan": 4.1,
+    "satici": {
+      "ad": "FitEv",
+      "puan": 8.8,
+      "konum": "Izmir"
+    },
+    "scenario": {
+      "id": "aspirational-purchase",
+      "demoGoal": "Aspirasyon alisverisi",
+      "trigger": "Urun saglik hedefi vaadiyle cazip ama kullanicinin fitness urunlerini surdurme gecmisi zayif.",
+      "expectedVerdict": "wait",
+      "riskSignals": [
+        "aspirational_health_purchase",
+        "low_follow_through_history",
+        "app_privacy_concern"
+      ],
+      "storefrontSignals": [
+        "Yeni yil hedefleri kampanyasi",
+        "Uygulama verisi gerektiriyor",
+        "Benzer fitness urunlerinde kullanim dusuk"
+      ],
+      "stockLabel": "Son 14 urun",
+      "couponLabel": "Saglik haftasi %18 indirim",
+      "shippingLabel": "Ucretsiz kargo",
+      "returnLabel": "30 gun iade",
+      "viewCountLabel": "Bugun 208 kisi goruntulendi"
+    },
+    "yorumlar": [
+      {
+        "yazar": "Cem U.",
+        "puan": 5,
+        "tarih": "2026-05-02",
+        "metin": "Uygulama trendleri motive edici, kurulumu kolay."
+      },
+      {
+        "yazar": "Aylin E.",
+        "puan": 3,
+        "tarih": "2026-04-21",
+        "metin": "Olcumler bazen degisken cikiyor, daha cok trend icin kullanilabilir."
+      },
+      {
+        "yazar": "Mina S.",
+        "puan": 2,
+        "tarih": "2026-04-11",
+        "metin": "Uygulama cok fazla izin istedi, kullanmayi biraktim."
+      },
+      {
+        "yazar": "FitYasam",
+        "puan": 5,
+        "tarih": "2026-05-07",
+        "metin": "YENI HAYATINIZA BUGUN BASLAYIN!!!"
+      }
+    ]
+  },
+  {
+    "id": "p-9001",
+    "slug": "derma-c-serum-seti",
+    "ad": "Derma C Serum Seti",
+    "kategori": "Kozmetik",
+    "fiyat": 899,
+    "aciklama": "C vitamini, hyaluronik asit ve niacinamide iceren uc adimli yogun bakim serum seti.",
+    "ozellikler": [
+      "3 serum bir arada",
+      "C vitamini kompleksi",
+      "Paraben icermez",
+      "Hassas ciltler icin patch test onerilir",
+      "Cam damlalikli sise"
+    ],
+    "gorselUrl": "https://placehold.co/900x900/fff1f2/111827?text=Serum+Seti",
+    "ortalamaPuan": 4.7,
+    "satici": {
+      "ad": "DermaLab",
+      "puan": 8.6,
+      "konum": "Istanbul"
+    },
+    "scenario": {
+      "id": "bundle-overbuy",
+      "demoGoal": "Paketle fazla alma",
+      "trigger": "Tek urun ihtiyaci varken set kampanyasi kullaniciyi daha fazla almaya itiyor.",
+      "expectedVerdict": "conditional_buy",
+      "riskSignals": [
+        "bundle_pressure",
+        "sensitive_skin_warning",
+        "unused_cosmetic_risk"
+      ],
+      "storefrontSignals": [
+        "Set al daha avantajli mesaji",
+        "Hassas cilt icin patch test uyarisi",
+        "Kozmetik kategorisinde iade kisitlari"
+      ],
+      "stockLabel": "Son 20 set",
+      "couponLabel": "Setlerde ikinci urune %30",
+      "shippingLabel": "Ayni gun kargo",
+      "returnLabel": "Acilmis kozmetikte iade yok",
+      "viewCountLabel": "Son 24 saatte 430 kisi goruntulendi"
+    },
+    "yorumlar": [
+      {
+        "yazar": "Cansu M.",
+        "puan": 5,
+        "tarih": "2026-05-05",
+        "metin": "C vitamini serumu parlaklik verdi, digerlerini henuz denemedim."
+      },
+      {
+        "yazar": "Nehir D.",
+        "puan": 4,
+        "tarih": "2026-04-24",
+        "metin": "Set guzel ama ucunu birden kullanmak cildimi yordu."
+      },
+      {
+        "yazar": "Ipek T.",
+        "puan": 2,
+        "tarih": "2026-04-15",
+        "metin": "Hassas cildimde yanma yapti, once patch test yapmak gerekirdi."
+      },
+      {
+        "yazar": "BeautyDeal",
+        "puan": 5,
+        "tarih": "2026-05-08",
+        "metin": "BU SETI ALMAYAN PISMAN OLUR!!!"
+      }
+    ]
+  },
+  {
+    "id": "p-10001",
+    "slug": "soundbar-lite-tv-hoparloru",
+    "ad": "SoundBar Lite TV Hoparloru",
+    "kategori": "Elektronik",
+    "fiyat": 4299,
+    "aciklama": "Ince tasarimli, Bluetooth destekli ve sanal surround modlu kompakt TV ses sistemi.",
+    "ozellikler": [
+      "120W cikis gucu",
+      "Bluetooth 5.2",
+      "HDMI ARC",
+      "Sanal surround mod",
+      "Duvara montaj aparati"
+    ],
+    "gorselUrl": "https://placehold.co/900x900/f5f5f4/111827?text=Soundbar",
+    "ortalamaPuan": 4.2,
+    "satici": {
+      "ad": "SesDunyasi",
+      "puan": 9.0,
+      "konum": "Bursa"
+    },
+    "scenario": {
+      "id": "hidden-compatibility-risk",
+      "demoGoal": "Uyumluluk riski",
+      "trigger": "Urun cazip ama kullanicinin TV baglanti tipiyle uyumluluk belirsiz.",
+      "expectedVerdict": "wait",
+      "riskSignals": [
+        "compatibility_unclear",
+        "return_shipping_cost",
+        "setup_complexity"
+      ],
+      "storefrontSignals": [
+        "HDMI ARC gerekli olabilir",
+        "Kurulum bilgisi yorumlarda karisik",
+        "Buyuk kutulu urunde iade kargo riski"
+      ],
+      "stockLabel": "Stokta 9 urun",
+      "couponLabel": "Sepette 500 TL indirim",
+      "shippingLabel": "Ucretsiz kargo",
+      "returnLabel": "Buyuk urunde iade kargo kontrolu",
+      "viewCountLabel": "Son 2 saatte 55 kisi inceledi"
+    },
+    "yorumlar": [
+      {
+        "yazar": "Eren V.",
+        "puan": 5,
+        "tarih": "2026-05-03",
+        "metin": "Yeni televizyonumla HDMI ARC uzerinden sorunsuz calisti."
+      },
+      {
+        "yazar": "Dilek O.",
+        "puan": 3,
+        "tarih": "2026-04-19",
+        "metin": "Ses iyi ama eski TV ile baglanti icin ek kablo gerekti."
+      },
+      {
+        "yazar": "Murat H.",
+        "puan": 2,
+        "tarih": "2026-04-10",
+        "metin": "Kurulum bekledigimden zor oldu, iade kargosu buyuk kutu yuzunden ugrastirdi."
+      }
+    ]
+  },
+  {
+    "id": "p-11001",
+    "slug": "focuspad-e-ink-not-defteri",
+    "ad": "FocusPad E-Ink Not Defteri",
+    "kategori": "Elektronik",
+    "fiyat": 12999,
+    "aciklama": "Kagitsiz not alma, PDF isaretleme ve bulut senkronizasyonu icin ince e-ink dijital not defteri.",
+    "ozellikler": [
+      "10.3 inc e-ink ekran",
+      "Manyetik kalem",
+      "PDF isaretleme",
+      "Bulut senkronizasyon",
+      "2 hafta pil omru"
+    ],
+    "gorselUrl": "https://placehold.co/900x900/f8fafc/111827?text=E-Ink+Defter",
+    "ortalamaPuan": 4.4,
+    "satici": {
+      "ad": "DijitalOfis",
+      "puan": 9.4,
+      "konum": "Istanbul"
+    },
+    "scenario": {
+      "id": "premium-productivity-fantasy",
+      "demoGoal": "Verimlilik fantazisi",
+      "trigger": "Urun profesyonel gorunuyor ama pahali ve benzer verimlilik urunleri kullanilmamis olabilir.",
+      "expectedVerdict": "wait",
+      "riskSignals": [
+        "premium_productivity_purchase",
+        "high_price",
+        "workflow_uncertainty"
+      ],
+      "storefrontSignals": [
+        "Profesyoneller icin vurgusu",
+        "Yuksek fiyatli verimlilik urunu",
+        "Bulut aboneligi ileride maliyet yaratabilir"
+      ],
+      "stockLabel": "Son 5 urun",
+      "couponLabel": "Lansmana ozel 1.000 TL indirim",
+      "shippingLabel": "Sigortali kargo",
+      "returnLabel": "Kalem ucu kullanilirsa iade incelemesi",
+      "viewCountLabel": "Bugun 121 kisi inceledi"
+    },
+    "yorumlar": [
+      {
+        "yazar": "Alp K.",
+        "puan": 5,
+        "tarih": "2026-05-02",
+        "metin": "Toplantilarda kagit tasimayi biraktim, yazma hissi guzel."
+      },
+      {
+        "yazar": "Defne S.",
+        "puan": 4,
+        "tarih": "2026-04-23",
+        "metin": "PDF isaretleme iyi ama bulut ozellikleri icin hesap acmak gerekiyor."
+      },
+      {
+        "yazar": "Baris C.",
+        "puan": 2,
+        "tarih": "2026-04-08",
+        "metin": "Iki hafta hevesle kullandim, sonra tabletimle ayni isi yaptigimi fark ettim."
+      },
+      {
+        "yazar": "ProOfis",
+        "puan": 5,
+        "tarih": "2026-05-07",
+        "metin": "GERCEK PROFESYONELLERIN NOT DEFTERI!!!"
+      }
+    ]
+  },
+  {
+    "id": "p-12001",
+    "slug": "silkair-sac-sekillendirici",
+    "ad": "SilkAir Sac Sekillendirici",
+    "kategori": "Kozmetik",
+    "fiyat": 5899,
+    "aciklama": "Farkli basliklarla kurutma, dalga ve hacim verme modlari sunan cok fonksiyonlu sac sekillendirici.",
+    "ozellikler": [
+      "5 degistirilebilir baslik",
+      "Isi kontrol sensoru",
+      "Iyon teknolojisi",
+      "Hafif govde",
+      "Seyahat cantasi"
+    ],
+    "gorselUrl": "https://placehold.co/900x900/fdf4ff/111827?text=Sac+Sekillendirici",
+    "ortalamaPuan": 4.3,
+    "satici": {
+      "ad": "GuzellikPazar",
+      "puan": 8.9,
+      "konum": "Ankara"
+    },
+    "scenario": {
+      "id": "influencer-dupe-pressure",
+      "demoGoal": "Influencer ve muadil baskisi",
+      "trigger": "Pahali bir premium urunun muadili gibi pazarlaniyor, yorumlarda performans tutarsizligi var.",
+      "expectedVerdict": "wait",
+      "riskSignals": [
+        "influencer_dupe_language",
+        "heat_damage_complaints",
+        "premium_anchor_effect"
+      ],
+      "storefrontSignals": [
+        "Premium muadil vurgusu",
+        "Influencer kuponu aktif",
+        "Isiya bagli zarar yorumlari var"
+      ],
+      "stockLabel": "Son 7 urun",
+      "couponLabel": "INFLU15 kodu aktif",
+      "shippingLabel": "Ayni gun kargo",
+      "returnLabel": "Kullanilmis basliklarda iade incelemesi",
+      "viewCountLabel": "Son 24 saatte 690 kisi goruntulendi"
+    },
+    "yorumlar": [
+      {
+        "yazar": "Yagmur I.",
+        "puan": 5,
+        "tarih": "2026-05-06",
+        "metin": "Influencer koduyla aldim, ilk denemede hacim verdi."
+      },
+      {
+        "yazar": "Merve L.",
+        "puan": 4,
+        "tarih": "2026-04-28",
+        "metin": "Basliklari pratik ama kalin saclarda zaman aliyor."
+      },
+      {
+        "yazar": "Asli R.",
+        "puan": 2,
+        "tarih": "2026-04-13",
+        "metin": "Yuksek isida sacimi kuruttu, daha dusuk ayarda kullanmak gerekiyor."
+      },
+      {
+        "yazar": "GuzellikAvcisi",
+        "puan": 5,
+        "tarih": "2026-05-08",
+        "metin": "PREMIUM URUNE SERVET VERMEYIN!!! BUGUN ALIN!!!"
       }
     ]
   }

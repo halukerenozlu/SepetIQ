@@ -1,0 +1,80 @@
+[
+  {
+    "id": "hakan",
+    "name": "Hakan",
+    "city": "Istanbul",
+    "defaultMode": "strict",
+    "monthlyBudget": 15000,
+    "spentThisMonth": 11800,
+    "coupons": 3,
+    "cartCount": 1,
+    "traits": ["tech-curious", "impulse-prone", "discount-sensitive"],
+    "recentViews": ["Kablosuz kulaklik", "Akilli saat", "Mekanik klavye"],
+    "purchases": [
+      {
+        "id": "hp-1",
+        "productName": "Kablosuz Kulaklik",
+        "category": "Elektronik",
+        "monthsAgo": 3,
+        "usage": "rarely",
+        "satisfaction": "regretted",
+        "price": 2499
+      },
+      {
+        "id": "hp-2",
+        "productName": "Akilli saat",
+        "category": "Elektronik",
+        "monthsAgo": 6,
+        "usage": "never",
+        "satisfaction": "regretted",
+        "price": 8999
+      }
+    ]
+  },
+  {
+    "id": "ayse",
+    "name": "Ayse",
+    "city": "Ankara",
+    "defaultMode": "balanced",
+    "monthlyBudget": 9000,
+    "spentThisMonth": 4200,
+    "coupons": 5,
+    "cartCount": 0,
+    "traits": ["deal-driven", "review-reader", "balanced"],
+    "recentViews": ["Cilt bakim cihazi", "Kablosuz kulaklik", "Telefon kilifi"],
+    "purchases": [
+      {
+        "id": "ap-1",
+        "productName": "Bluetooth hoparlor",
+        "category": "Elektronik",
+        "monthsAgo": 5,
+        "usage": "often",
+        "satisfaction": "satisfied",
+        "price": 1299
+      }
+    ]
+  },
+  {
+    "id": "mehmet",
+    "name": "Mehmet",
+    "city": "Izmir",
+    "defaultMode": "soft",
+    "monthlyBudget": 22000,
+    "spentThisMonth": 6400,
+    "coupons": 1,
+    "cartCount": 2,
+    "traits": ["planned-buyer", "low-impulse", "quality-focused"],
+    "recentViews": ["Laptop standi", "Mekanik klavye", "Monitor"],
+    "purchases": [
+      {
+        "id": "mp-1",
+        "productName": "Ofis mouse",
+        "category": "Elektronik",
+        "monthsAgo": 8,
+        "usage": "daily",
+        "satisfaction": "satisfied",
+        "price": 899
+      }
+    ]
+  }
+]
