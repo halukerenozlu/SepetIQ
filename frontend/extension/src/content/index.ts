@@ -26,6 +26,8 @@ import type {
 const PANEL_HOST_ID = "sepetiq-panel-host";
 const FAB_HOST_ID = "sepetiq-fab-host";
 const MAX_Z_INDEX = 2147483647;
+const GUEST_LIMIT = 10;
+const GUEST_COUNT_KEY = "sepetiq_guest_count";
 
 const SLOW_THRESHOLD_MS = 15_000;
 const ABORT_THRESHOLD_MS = 35_000;
@@ -353,8 +355,40 @@ function getBottomRightReservedSpace(): number {
   return reservedSpace;
 }
 
+async function checkGuestLimit(): Promise<boolean> {
+  let isLoggedIn = false;
+  try {
+    const storage = await chrome.storage.local.get(["supabase_user_id", "supabase_token"]);
+    isLoggedIn = !!(storage["supabase_user_id"] || storage["supabase_token"]);
+  } catch {
+    // storage erişimi başarısız → misafir say
+  }
+  if (isLoggedIn) return true;
+
+  const count = parseInt(localStorage.getItem(GUEST_COUNT_KEY) ?? "0", 10);
+  if (count >= GUEST_LIMIT) return false;
+
+  localStorage.setItem(GUEST_COUNT_KEY, String(count + 1));
+  return true;
+}
+
 function startAnalysis(): void {
   const scraper = getActiveScraper();
+  if (!scraper) return;
+
+  void (async () => {
+    const allowed = await checkGuestLimit();
+    if (!allowed) {
+      resetAnalysisState();
+      status = "guest_limit";
+      renderPanel();
+      return;
+    }
+    _doStartAnalysis(scraper);
+  })();
+}
+
+function _doStartAnalysis(scraper: ReturnType<typeof getActiveScraper>): void {
   if (!scraper) return;
 
   clearAnalysisTimers();

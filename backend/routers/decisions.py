@@ -73,6 +73,7 @@ async def _save_to_supabase(
             "body": tone_out.get("body") or "",
             "suggested_action": (tone_out.get("suggested_action") or verdict_out.get("suggested_action")),
             "total_duration_ms": total_duration_ms or None,
+            "score_breakdown": verdict_out.get("score_breakdown") or {},
         }
         await supabase_client.save_decision(decision_row)
     except Exception as exc:  # noqa: BLE001

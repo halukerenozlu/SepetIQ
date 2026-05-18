@@ -202,6 +202,8 @@ export function DecisionPanel({
             </button>
           </div>
         )}
+
+        {status === "guest_limit" && <GuestLimitStep />}
       </main>
     </section>
   );
@@ -309,7 +311,31 @@ function getStatusText(status: AnalysisStatus): string {
   if (status === "complete") return "Karar hazır";
   if (status === "error") return "Hata";
   if (status === "idle") return "Hazır";
+  if (status === "guest_limit") return "Limit doldu";
   return "Analiz sürüyor";
+}
+
+const DASHBOARD_URL = "http://localhost:3000";
+
+function GuestLimitStep() {
+  return (
+    <div className="guest-limit-state">
+      <div className="guest-limit-icon">🔒</div>
+      <h2>Günlük limit doldu</h2>
+      <p>
+        Misafir olarak günde <strong>10 ücretsiz analiz</strong> hakkın var.
+        Sınırsız kullanım için giriş yap.
+      </p>
+      <a
+        className="primary-button"
+        href={`${DASHBOARD_URL}/login`}
+        target="_blank"
+        rel="noreferrer"
+      >
+        Giriş Yap — Sınırsız Kullan
+      </a>
+    </div>
+  );
 }
 
 const styles = `
@@ -709,6 +735,43 @@ const styles = `
     color: #ef4444;
     font-size: 24px;
     font-weight: 900;
+  }
+
+  .guest-limit-state {
+    min-height: 220px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    text-align: center;
+    padding: 8px 0;
+    animation: fade-in 160ms ease-out;
+  }
+
+  .guest-limit-state p {
+    color: #6b7280;
+    font-size: 13px;
+    line-height: 1.5;
+    max-width: 260px;
+  }
+
+  .guest-limit-state p strong {
+    color: #1f2937;
+    font-weight: 800;
+  }
+
+  .guest-limit-icon {
+    font-size: 32px;
+    line-height: 1;
+  }
+
+  .guest-limit-state .primary-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    margin-top: 4px;
   }
 
   @keyframes spin {

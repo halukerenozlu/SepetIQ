@@ -171,6 +171,7 @@ export default async function DecisionDetailPage({
       .single();
 
     if (decisionData) {
+      const sb = (decisionData.score_breakdown ?? {}) as Record<string, number>;
       decision = {
         id: decisionData.id,
         user_id: decisionData.user_id,
@@ -181,10 +182,10 @@ export default async function DecisionDetailPage({
         verdict: decisionData.verdict,
         verdict_message: decisionData.body,
         shopping_mode: decisionData.mode_used,
-        need_score: 0,
-        budget_score: 0,
-        product_score: 0,
-        total_score: 0,
+        need_score: sb.need_score ?? 0,
+        budget_score: sb.budget_score ?? 0,
+        product_score: sb.product_score ?? 0,
+        total_score: sb.behavior_score ?? 0,
         is_cyclic_recheck: decisionData.total_cycles > 1,
         created_at: decisionData.created_at,
       };
