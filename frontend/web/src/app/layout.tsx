@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import { ExtensionSessionBridge } from "@/components/ExtensionSessionBridge";
 import "./globals.css";
 
 const inter = Inter({
@@ -21,7 +20,6 @@ export default function RootLayout({
   return (
     <html lang="tr">
       <body className={`${inter.variable} antialiased`}>
-        <ExtensionSessionBridge />
         {children}
       </body>
     </html>

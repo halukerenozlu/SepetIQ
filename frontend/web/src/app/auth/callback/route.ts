@@ -10,7 +10,22 @@ export async function GET(request: Request) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error) {
-      return NextResponse.redirect(`${origin}/dashboard`);
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (user) {
+        const { data: profile } = await supabase
+          .from('user_profiles')
+          .select('privacy_accepted_at')
+          .eq('id', user.id)
+          .single();
+
+        if (profile?.privacy_accepted_at) {
+          return NextResponse.redirect(`${origin}/dashboard`);
+        }
+        return NextResponse.redirect(`${origin}/consent`);
+      }
     }
   }
 

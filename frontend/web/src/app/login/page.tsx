@@ -39,6 +39,7 @@ function GoogleIcon() {
 function LoginForm() {
   const searchParams = useSearchParams();
   const error = searchParams.get('error');
+  const consent = searchParams.get('consent');
   const [loginError, setLoginError] = useState(false);
 
   const handleGoogleLogin = async () => {
@@ -72,6 +73,11 @@ function LoginForm() {
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
+          {consent === 'declined' && (
+            <div className="rounded-md bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-800">
+              Gizlilik politikasını onaylamadan devam edilemiyor. İstersen tekrar giriş yapabilirsin.
+            </div>
+          )}
           {(error === 'auth_failed' || loginError) && (
             <div className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
               {error === 'auth_failed'

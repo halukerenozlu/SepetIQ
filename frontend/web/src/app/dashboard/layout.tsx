@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers';
 import { createClient } from '@/lib/supabase/server';
 import DashboardLayoutClient from '@/components/dashboard/DashboardLayoutClient';
+import { ExtensionSessionBridge } from '@/components/ExtensionSessionBridge';
 
 export default async function DashboardLayout({
   children,
@@ -16,11 +17,14 @@ export default async function DashboardLayout({
   const displayName = user?.user_metadata?.full_name ?? 'Kullanıcı';
 
   return (
-    <DashboardLayoutClient
-      demoUser={demoUser}
-      displayName={displayName}
-    >
-      {children}
-    </DashboardLayoutClient>
+    <>
+      <ExtensionSessionBridge />
+      <DashboardLayoutClient
+        demoUser={demoUser}
+        displayName={displayName}
+      >
+        {children}
+      </DashboardLayoutClient>
+    </>
   );
 }

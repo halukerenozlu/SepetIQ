@@ -1,7 +1,7 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
-const PROTECTED_PREFIXES = ['/dashboard', '/decisions'];
+const PROTECTED_PREFIXES = ['/dashboard', '/decisions', '/consent'];
 const DEMO_USER_WHITELIST = ['ayse', 'mehmet', 'can'];
 const DEMO_COOKIE = 'sepetiq-demo-user';
 const DEMO_COOKIE_MAX_AGE = 86400; // 24 hours
@@ -108,9 +108,22 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  // Giriş yapmış kullanıcı /login'e gelirse yönlendir
+  if (user && pathname === '/login') {
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('privacy_accepted_at')
+      .eq('id', user.id)
+      .single();
+
+    const url = request.nextUrl.clone();
+    url.pathname = profile?.privacy_accepted_at ? '/dashboard' : '/consent';
+    return NextResponse.redirect(url);
+  }
+
   return supabaseResponse;
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/decisions/:path*'],
+  matcher: ['/dashboard/:path*', '/decisions/:path*', '/consent', '/login'],
 };

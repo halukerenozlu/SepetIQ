@@ -77,9 +77,11 @@ export function Popup() {
 function LoggedOutView() {
   return (
     <div style={s.section}>
-      <p style={s.description}>
-        Satın alma kararlarınızı analiz etmek için giriş yapın.
-      </p>
+      <div style={s.benefits}>
+        <div style={s.benefitItem}>Kişiselleştirilmiş karar geçmişi</div>
+        <div style={s.benefitItem}>Bütçe ve alışveriş alışkanlıklarına göre analiz</div>
+        <div style={s.benefitItem}>Daha güçlü dashboard deneyimi</div>
+      </div>
       <a href={`${DASHBOARD_URL}/login`} target="_blank" rel="noreferrer" style={s.primaryButton}>
         Google ile Giriş Yap
       </a>
@@ -162,6 +164,20 @@ const s: Record<string, React.CSSProperties> = {
     fontSize: 13,
     color: "#6b7280",
     lineHeight: 1.5,
+  },
+  benefits: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 6,
+    padding: "2px 0",
+  },
+  benefitItem: {
+    position: "relative",
+    paddingLeft: 14,
+    fontSize: 12,
+    color: "#4b5563",
+    lineHeight: 1.4,
+    fontWeight: 650,
   },
   primaryButton: {
     display: "flex",
