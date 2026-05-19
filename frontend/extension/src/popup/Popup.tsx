@@ -68,18 +68,18 @@ export function Popup() {
           <div style={s.tagline}>Bilinçli satın alma kontrolü</div>
         </div>
         <span style={isLoggedIn ? s.authBadgeOk : s.authBadgeWarn}>
-          {isLoggedIn ? "Bağlı" : "Giriş yok"}
+          {isLoggedIn ? "Oturum bağlı" : "Oturum yok"}
         </span>
       </header>
 
       <div style={s.body}>
         <StatusCard
           type={onSupportedSite ? "success" : "warning"}
-          title={onSupportedSite ? "Bu ürün sayfası destekleniyor" : "Desteklenen bir ürün sayfası açın"}
+          title={onSupportedSite ? "Analize hazır ürün sayfası" : "Ürün sayfası bekleniyor"}
           description={
             onSupportedSite
-              ? `${shortUrl(activeTabUrl)} üzerinde analiz başlatabilirsiniz.`
-              : "Trendyol, Hepsiburada, n11, Amazon Türkiye veya local demo ürün sayfasına gidin."
+              ? `${shortUrl(activeTabUrl)} üzerinde SepetIQ paneli açılabilir.`
+              : "Trendyol, Hepsiburada, n11, Amazon Türkiye veya local demo ürün detay sayfasına geçin."
           }
         />
 
@@ -119,8 +119,8 @@ function LoggedOutView() {
   return (
     <div style={s.section}>
       <div style={s.callout}>
-        <strong>Dashboard senkronizasyonu için giriş yapın.</strong>
-        <span>Giriş sonrası karar geçmişiniz ve skorlarınız web panelinde görünür.</span>
+        <strong>Web paneliyle bağlantı kurulmadı.</strong>
+        <span>Giriş yaptıktan sonra karar geçmişi, skorlar ve demo verileri dashboard'da senkronize olur.</span>
       </div>
       <a href={`${DASHBOARD_URL}/login`} target="_blank" rel="noreferrer" style={s.primaryButton}>
         Google ile Giriş Yap
@@ -134,8 +134,8 @@ function LoggedInView({ onSupportedSite }: { onSupportedSite: boolean }) {
     <div style={s.section}>
       <p style={s.description}>
         {onSupportedSite
-          ? 'Sayfadaki "SepetIQ ile Kontrol Et" butonuyla analizi başlatın.'
-          : "Analiz butonu yalnızca desteklenen ürün sayfalarında görünür."}
+          ? 'Sayfadaki "SepetIQ ile Kontrol Et" butonuyla analizi başlatabilirsiniz.'
+          : "Oturum hazır. Analiz butonu desteklenen ürün detay sayfalarında görünür."}
       </p>
       <div style={s.actions}>
         <a href={`${DASHBOARD_URL}/dashboard`} target="_blank" rel="noreferrer" style={s.primaryButton}>

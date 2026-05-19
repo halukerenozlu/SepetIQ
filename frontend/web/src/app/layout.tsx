@@ -3,8 +3,8 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({
-  variable: "--font-sans",
-  subsets: ["latin"],
+  variable: "--font-inter",
+  subsets: ["latin", "latin-ext"],
 });
 
 export const metadata: Metadata = {
@@ -19,7 +19,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="tr">
-      <body className={`${inter.variable} antialiased`}>
+      <body className={`${inter.className} ${inter.variable} antialiased`}>
         {children}
       </body>
     </html>

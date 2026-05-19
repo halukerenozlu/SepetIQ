@@ -58,6 +58,7 @@ function getActiveScraper() {
 function ensurePanelRoot(): void {
   if (panelRoot && panelHost) {
     panelHost.style.display = "";
+    setFabVisible(false);
     return;
   }
 
@@ -79,6 +80,7 @@ function ensurePanelRoot(): void {
   }
 
   panelRoot = createRoot(mount);
+  setFabVisible(false);
 }
 
 function renderPanel(): void {
@@ -102,6 +104,7 @@ function renderPanel(): void {
 function hidePanel(): void {
   clearAnalysisTimers();
   if (panelHost) panelHost.style.display = "none";
+  setFabVisible(true);
 }
 
 function clearAnalysisTimers(): void {
@@ -124,6 +127,11 @@ function setPanelState(nextStatus: AnalysisStatus): void {
 function appendEvent(event: SSEEvent): void {
   events = [...events, event];
   renderPanel();
+}
+
+function setFabVisible(visible: boolean): void {
+  if (!fabHostRef) return;
+  fabHostRef.style.display = visible ? "" : "none";
 }
 
 function hasVerdictEvent(): boolean {
@@ -251,7 +259,7 @@ function injectFab(): void {
       color: white;
       box-shadow: 0 8px 24px rgba(79, 70, 229, 0.40), 0 2px 6px rgba(0,0,0,0.12);
       cursor: pointer;
-      font-family: system-ui, -apple-system, sans-serif;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
       font-size: 13px;
       font-weight: 800;
       white-space: nowrap;

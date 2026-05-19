@@ -53,6 +53,46 @@ const verdictConfig: Record<
   },
 };
 
+const agentCopy: Record<string, { label: string; description: string }> = {
+  product_context: {
+    label: "Ürün Bağlamı",
+    description: "Ürün adı, fiyat, kategori ve sayfadaki temel bilgiler karar bağlamına çevrildi.",
+  },
+  review_risk: {
+    label: "Yorum Riski",
+    description: "Yorumlarda kalite, iade, teslimat ve tekrar eden şikayet sinyalleri arandı.",
+  },
+  behavior_profile: {
+    label: "Davranış Profili",
+    description: "Bu satın alma niyeti geçmiş alışveriş davranışıyla karşılaştırıldı.",
+  },
+  need_analyzer: {
+    label: "İhtiyaç Analizi",
+    description: "Kullanıcının bu ürüne gerçekten ihtiyaç duyup duymadığı netleştirildi.",
+  },
+  budget_guard: {
+    label: "Bütçe Kontrolü",
+    description: "Fiyat, bütçe sınırı ve harcama disiplini açısından kontrol edildi.",
+  },
+  verdict: {
+    label: "Karar Motoru",
+    description: "Tüm skorlar tek bir satın alma kararına dönüştürüldü.",
+  },
+  tone_writer: {
+    label: "Mesaj Yazarı",
+    description: "Nihai karar kullanıcıya açık ve yargılamayan bir dille yazıldı.",
+  },
+};
+
+function getAgentCopy(agentName: string) {
+  return (
+    agentCopy[agentName] ?? {
+      label: agentName.replaceAll("_", " "),
+      description: "Bu analiz adımı başarıyla tamamlandı.",
+    }
+  );
+}
+
 function ScoreCircle({ score, label }: { score: number; label: string }) {
   return (
     <Card className="flex flex-col items-center p-6 text-center">
@@ -318,39 +358,53 @@ export default async function DecisionDetailPage({
 
       {/* Agent Traces */}
       <div className="space-y-6">
-        <h2 className="text-2xl font-bold">Agent Trace Timeline</h2>
+        <div>
+          <h2 className="text-2xl font-bold">Ajan Analiz Akışı</h2>
+          <p className="mt-1 text-sm text-zinc-500">
+            Kararın hangi kontrollerden geçtiğini adım adım gösterir.
+          </p>
+        </div>
         <div className="relative space-y-4 before:absolute before:inset-0 before:ml-5 before:-translate-x-px before:h-full before:w-0.5 before:bg-linear-to-b before:from-transparent before:via-zinc-200 before:to-transparent">
-          {traces.map((trace) => (
-            <div
-              key={trace.id}
-              className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active"
-            >
-              {/* Icon */}
-              <div className="flex items-center justify-center w-10 h-10 rounded-full border border-white bg-zinc-100 group-[.is-active]:bg-emerald-500 text-zinc-500 group-[.is-active]:text-white shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2">
-                <Cpu className="h-5 w-5" />
-              </div>
-              {/* Card */}
-              <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-xl border bg-white shadow-sm transition-all group-hover:border-emerald-200">
-                <div className="flex items-center justify-between mb-1">
-                  <div className="font-bold text-zinc-900 uppercase text-xs tracking-wider">
-                    {trace.agent_name.replace("_", " ")}
+          {traces.length === 0 ? (
+            <Card className="bg-white">
+              <CardContent className="p-6 text-sm text-zinc-500">
+                Bu karar için ajan akışı kaydı bulunamadı.
+              </CardContent>
+            </Card>
+          ) : (
+            traces.map((trace) => {
+              const copy = getAgentCopy(trace.agent_name);
+
+              return (
+                <div
+                  key={trace.id}
+                  className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active"
+                >
+                  {/* Icon */}
+                  <div className="flex items-center justify-center w-10 h-10 rounded-full border border-white bg-zinc-100 group-[.is-active]:bg-emerald-500 text-zinc-500 group-[.is-active]:text-white shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2">
+                    <Cpu className="h-5 w-5" />
                   </div>
-                  <time className="text-xs text-zinc-400 font-mono">
-                    {trace.duration_ms}ms
-                  </time>
+                  {/* Card */}
+                  <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-xl border bg-white shadow-sm transition-all group-hover:border-emerald-200">
+                    <div className="flex items-center justify-between mb-1 gap-3">
+                      <div className="font-bold text-zinc-900 text-sm">
+                        {copy.label}
+                      </div>
+                      <time className="shrink-0 text-xs text-zinc-400 font-mono">
+                        {trace.duration_ms}ms
+                      </time>
+                    </div>
+                    <div className="text-zinc-500 text-sm leading-relaxed">
+                      {copy.description}
+                    </div>
+                    <div className="mt-2 text-xs font-medium text-zinc-400">
+                      Döngü {trace.cycle_iteration} · Sıra {trace.sequence_order}
+                    </div>
+                  </div>
                 </div>
-                <div className="text-zinc-500 text-sm">
-                  {trace.agent_name === "need_analyzer"
-                    ? "Kullanıcı ihtiyaçları ve geçmiş alışverişler analiz edildi."
-                    : trace.agent_name === "budget_guard"
-                      ? "Bütçe limitleri ve aylık harcamalar kontrol edildi."
-                      : trace.agent_name === "verdict"
-                        ? "Tüm veriler ışığında nihai karar oluşturuldu."
-                        : "İşlem başarıyla tamamlandı."}
-                </div>
-              </div>
-            </div>
-          ))}
+              );
+            })
+          )}
         </div>
       </div>
     </div>

@@ -1,4 +1,4 @@
-﻿import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type {
   AnalysisMode,
   AnalysisStatus,
@@ -38,6 +38,16 @@ const AGENTS: AgentProgress[] = [
   { id: "verdict", label: "Karar Motoru", status: "idle" },
   { id: "tone_writer", label: "Mesaj Hazırlama", status: "idle" },
 ];
+
+const AGENT_HELP_TEXT: Record<string, string> = {
+  product_context: "Ürün bilgileri, fiyat ve kategori okundu.",
+  review_risk: "Yorumlarda tekrar eden risk sinyalleri kontrol edildi.",
+  behavior_profile: "Satın alma niyeti geçmiş davranışla karşılaştırıldı.",
+  budget_guard: "Bütçe ve harcama eşiği kontrol edildi.",
+  need_analyzer: "İhtiyacı netleştirmek için kısa sorular hazırlandı.",
+  verdict: "Skorlar tek bir karara dönüştürüldü.",
+  tone_writer: "Son mesaj anlaşılır hale getiriliyor.",
+};
 
 const MODE_LABELS: Record<AnalysisMode, string> = {
   soft: "Nazik Rehber",
@@ -229,7 +239,9 @@ function AgentProgressList({ progress }: { progress: AgentProgress[] }) {
           </span>
           <span className="agent-copy">
             <span className="agent-name">{agent.label}</span>
-            {agent.summary && <span className="agent-summary">{agent.summary}</span>}
+            <span className="agent-summary">
+              {AGENT_HELP_TEXT[agent.id] ?? "Analiz adımı tamamlandı."}
+            </span>
           </span>
         </li>
       ))}
@@ -252,57 +264,91 @@ function QuestionStep({
   onSelect,
   onSubmit,
 }: QuestionStepProps) {
-  const answeredCount = questions.filter((question) => answers[question.id]).length;
   const totalQuestions = Math.max(questions.length, 1);
-  const progressPercent = Math.round((answeredCount / totalQuestions) * 100);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const currentQuestion = questions[currentIndex];
+  const currentAnswer = currentQuestion ? answers[currentQuestion.id] : undefined;
+  const visibleQuestionNumber = Math.min(currentIndex + 1, totalQuestions);
+  const progressPercent = Math.round((visibleQuestionNumber / totalQuestions) * 100);
+  const isLastQuestion = visibleQuestionNumber === totalQuestions;
+
+  useEffect(() => {
+    setCurrentIndex((index) => Math.min(index, Math.max(questions.length - 1, 0)));
+  }, [questions.length]);
+
+  const goNext = () => {
+    if (!currentAnswer) return;
+    if (isLastQuestion) {
+      onSubmit();
+      return;
+    }
+    setCurrentIndex((index) => Math.min(index + 1, questions.length - 1));
+  };
+
+  const goBack = () => {
+    setCurrentIndex((index) => Math.max(index - 1, 0));
+  };
 
   return (
     <div className="question-step">
       <div className="section-heading">
-        <h2>Birkaç netleştirme sorusu</h2>
-        <p>Yanıtların karar skorunu doğrudan etkiler.</p>
+        <h2>Netleştirme sorusu</h2>
+        <p>Her soruyu tek tek yanıtla; skor cevabına göre güncellenecek.</p>
       </div>
 
-      <div className="question-progress" aria-label={`Soru ilerlemesi ${answeredCount}/${totalQuestions}`}>
+      <div
+        className="question-progress"
+        aria-label={`Soru ilerlemesi ${visibleQuestionNumber}/${totalQuestions}`}
+      >
         <div className="progress-copy">
-          <span>İlerleme</span>
-          <strong>{answeredCount}/{totalQuestions}</strong>
+          <span>Soru</span>
+          <strong>{visibleQuestionNumber}/{totalQuestions}</strong>
         </div>
         <div className="progress-track">
           <div className="progress-fill" style={{ width: `${progressPercent}%` }} />
         </div>
       </div>
 
-      <div className="question-list">
-        {questions.map((question, index) => (
-          <div className="question-block" key={question.id}>
+      {currentQuestion && (
+        <div className="question-list">
+          <div className="question-block" key={currentQuestion.id}>
             <p>
-              <span>{index + 1}.</span> {question.text}
+              <span>{visibleQuestionNumber}.</span> {currentQuestion.text}
             </p>
             <div className="option-grid">
-              {getQuestionOptions(question).map((option) => (
+              {getQuestionOptions(currentQuestion).map((option) => (
                 <button
-                  className={answers[question.id] === option ? "option selected" : "option"}
+                  className={answers[currentQuestion.id] === option ? "option selected" : "option"}
                   key={option}
                   type="button"
-                  onClick={() => onSelect(question.id, option)}
+                  onClick={() => onSelect(currentQuestion.id, option)}
                 >
                   {option}
                 </button>
               ))}
             </div>
           </div>
-        ))}
-      </div>
+        </div>
+      )}
 
-      <button
-        className="primary-button"
-        type="button"
-        disabled={!canSubmit}
-        onClick={onSubmit}
-      >
-        Cevapları Gönder
-      </button>
+      <div className="question-actions">
+        <button
+          className="secondary-action"
+          type="button"
+          disabled={currentIndex === 0}
+          onClick={goBack}
+        >
+          Geri
+        </button>
+        <button
+          className="primary-button"
+          type="button"
+          disabled={isLastQuestion ? !canSubmit : !currentAnswer}
+          onClick={goNext}
+        >
+          {isLastQuestion ? "Cevapları Gönder" : "Sonraki Soru"}
+        </button>
+      </div>
     </div>
   );
 }
@@ -344,7 +390,7 @@ const DASHBOARD_URL = "http://localhost:3000";
 function GuestLimitStep() {
   return (
     <div className="guest-limit-state">
-      <div className="guest-limit-icon">ğŸ”’</div>
+      <div className="guest-limit-icon">!</div>
       <h2>Günlük limit doldu</h2>
       <p>
         Misafir olarak günde <strong>10 ücretsiz analiz</strong> hakkın var.
@@ -372,19 +418,19 @@ const styles = `
     right: 24px;
     top: 50%;
     transform: translateY(-50%);
-    width: 360px;
+    width: 420px;
     max-width: calc(100vw - 32px);
-    max-height: 80vh;
+    max-height: calc(100svh - 32px);
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 12px;
     background: #ffffff;
     color: #1f2937;
     border: 1px solid rgba(31, 41, 55, 0.08);
     border-radius: 14px;
     box-shadow: 0 24px 60px rgba(15, 23, 42, 0.24);
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     animation: panel-in 180ms ease-out;
   }
 
@@ -393,7 +439,7 @@ const styles = `
     align-items: flex-start;
     justify-content: space-between;
     gap: 12px;
-    padding: 18px 18px 0;
+    padding: 16px 20px 0;
   }
 
   .eyebrow {
@@ -447,7 +493,7 @@ const styles = `
     align-items: center;
     justify-content: space-between;
     gap: 10px;
-    padding: 0 18px;
+    padding: 0 20px;
   }
 
   .mode-badge {
@@ -477,7 +523,12 @@ const styles = `
   .panel-body {
     min-height: 220px;
     overflow-y: auto;
-    padding: 0 18px 18px;
+    scrollbar-width: none;
+    padding: 0 20px 18px;
+  }
+
+  .panel-body::-webkit-scrollbar {
+    display: none;
   }
 
   .agent-list {
@@ -493,7 +544,7 @@ const styles = `
     grid-template-columns: 28px minmax(0, 1fr);
     align-items: center;
     gap: 9px;
-    min-height: 52px;
+    min-height: 48px;
     border-bottom: 1px solid #f3f4f6;
   }
 
@@ -565,7 +616,7 @@ const styles = `
   .question-step {
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 10px;
     animation: fade-in 160ms ease-out;
   }
 
@@ -580,7 +631,7 @@ const styles = `
   .verdict-copy p {
     color: #6b7280;
     font-size: 13px;
-    line-height: 1.5;
+    line-height: 1.42;
   }
 
   .question-list {
@@ -593,7 +644,7 @@ const styles = `
     display: flex;
     flex-direction: column;
     gap: 7px;
-    padding: 10px;
+    padding: 9px 10px;
     border-radius: 10px;
     background: #eef2ff;
     border: 1px solid #e0e7ff;
@@ -625,8 +676,8 @@ const styles = `
   .question-block {
     display: flex;
     flex-direction: column;
-    gap: 9px;
-    padding: 12px;
+    gap: 8px;
+    padding: 12px 14px;
     border-radius: 10px;
     background: #f9fafb;
     border: 1px solid #eef2f7;
@@ -635,7 +686,7 @@ const styles = `
   .question-block p {
     color: #1f2937;
     font-size: 13px;
-    line-height: 1.45;
+    line-height: 1.4;
     font-weight: 650;
   }
 
@@ -646,12 +697,12 @@ const styles = `
   .option-grid {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 7px;
   }
 
   .option {
-    min-height: 34px;
-    padding: 7px 10px;
+    min-height: 30px;
+    padding: 6px 10px;
     border: 1px solid #e5e7eb;
     border-radius: 8px;
     background: #ffffff;
@@ -659,6 +710,7 @@ const styles = `
     cursor: pointer;
     font: inherit;
     font-size: 12px;
+    line-height: 1.25;
     font-weight: 700;
     transition: border 140ms ease, background 140ms ease, color 140ms ease;
   }
@@ -672,6 +724,36 @@ const styles = `
     border-color: #6366f1;
     background: #6366f1;
     color: white;
+  }
+
+  .question-actions {
+    display: grid;
+    grid-template-columns: 92px minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .secondary-action {
+    min-height: 42px;
+    width: 100%;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    background: #ffffff;
+    color: #374151;
+    cursor: pointer;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 800;
+    transition: border 140ms ease, background 140ms ease, opacity 140ms ease;
+  }
+
+  .secondary-action:hover:not(:disabled) {
+    border-color: #c7d2fe;
+    background: #eef2ff;
+  }
+
+  .secondary-action:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
   }
 
   .primary-button {
