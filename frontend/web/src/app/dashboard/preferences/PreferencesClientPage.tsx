@@ -342,10 +342,10 @@ export default function PreferencesPage({
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2 text-red-900">
             <AlertTriangle className="h-5 w-5" />
-            Temiz Başlangıç
+            Alışveriş Geçmişini Sıfırla
           </CardTitle>
           <CardDescription className="text-red-800/80">
-            Karar geçmişinizi, geçmiş alışverişlerinizi ve kişiselleştirme ayarlarınızı siler. Hesabınız ve onay bilgileriniz korunur.
+            Bu işlem hesabınızı silmez. Yalnızca karar geçmişinizi, geçmiş alışverişlerinizi ve kişiselleştirme ayarlarınızı temizler.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -361,7 +361,7 @@ export default function PreferencesPage({
             className="border-red-300 bg-white text-red-700 hover:bg-red-50 hover:text-red-800"
           >
             <Trash2 className="h-4 w-4" />
-            {clearingData ? "Siliniyor..." : "Verilerimi Sil"}
+            {clearingData ? "Siliniyor..." : "Alışveriş Geçmişimi Sil"}
           </Button>
         </CardContent>
       </Card>
@@ -377,7 +377,7 @@ export default function PreferencesPage({
                 <div>
                   <h3 className="text-lg font-bold text-zinc-900">Veriler silindi</h3>
                   <p className="mt-2 text-sm text-zinc-600">
-                    SepetIQ sizin için temiz bir başlangıç yaptı.
+                    Alışveriş geçmişiniz ve karar kayıtlarınız temizlendi. Hesabınız korunuyor.
                   </p>
                 </div>
                 <Button
@@ -395,10 +395,10 @@ export default function PreferencesPage({
                     <AlertTriangle className="h-5 w-5" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold text-zinc-900">Verileri sil?</h3>
+                    <h3 className="text-lg font-bold text-zinc-900">Alışveriş geçmişini sil?</h3>
                     <p className="mt-2 text-sm leading-6 text-zinc-600">
-                      Karar geçmişiniz, geçmiş alışverişleriniz ve kişiselleştirme ayarlarınız silinecek.
-                      Hesabınız ve onay bilgileriniz korunur.
+                      Bu işlem hesabınızı silmez. Karar geçmişiniz, geçmiş alışverişleriniz ve kişiselleştirme ayarlarınız silinecek.
+                      Hesabınız ve onay bilgileriniz korunacak.
                     </p>
                   </div>
                 </div>

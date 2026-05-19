@@ -3,7 +3,14 @@
   "name": "SepetIQ - Akıllı Alışveriş Asistanı",
   "version": "0.1.0",
   "description": "Satın alma kararlarınızı AI ile analiz eder",
-  "permissions": ["activeTab", "storage", "sidePanel", "cookies", "alarms", "tabs"],
+  "permissions": [
+    "activeTab",
+    "storage",
+    "sidePanel",
+    "cookies",
+    "alarms",
+    "tabs"
+  ],
   "host_permissions": [
     "https://www.trendyol.com/*",
     "https://trendyol.com/*",
@@ -14,6 +21,7 @@
     "https://www.n11.com/*",
     "https://n11.com/*",
     "http://localhost:8000/*",
+    "https://sepetiq-production.up.railway.app/*",
     "http://localhost:3000/*",
     "http://localhost:3001/*"
   ],

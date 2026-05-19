@@ -18,7 +18,7 @@ import type { ExtensionMessage } from "../shared/messages";
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 
-const DEFAULT_API_BASE = "http://localhost:8000";
+const DEFAULT_API_BASE = "https://sepetiq-production.up.railway.app";
 const DASHBOARD_ORIGIN = "http://localhost:3000";
 const SUPABASE_COOKIE_RE = /^sb-.+-auth-token(?:\.\d+)?$/;
 
@@ -68,7 +68,9 @@ async function getSessionFromChromeStorage(): Promise<ExtensionAuthSession | nul
       }
 
       const entries = Object.entries(items);
-      const likelyEntries = entries.filter(([key]) => isLikelySupabaseSessionKey(key));
+      const likelyEntries = entries.filter(([key]) =>
+        isLikelySupabaseSessionKey(key),
+      );
 
       const likelySession = findSessionInEntries(likelyEntries);
       if (likelySession) {
@@ -406,11 +408,14 @@ async function submitAnswer(
   }
 
   try {
-    const response = await fetch(`${apiBase}/api/v1/decisions/${decisionId}/answer`, {
-      method: "POST",
-      headers,
-      body: JSON.stringify({ answers }),
-    });
+    const response = await fetch(
+      `${apiBase}/api/v1/decisions/${decisionId}/answer`,
+      {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ answers }),
+      },
+    );
     if (!response.ok) {
       sendToTab(tabId, {
         type: MSG.ANALYSIS_ERROR,

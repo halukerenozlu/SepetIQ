@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -37,14 +37,20 @@ function GoogleIcon() {
 }
 
 function LoginForm() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const error = searchParams.get('error');
   const consent = searchParams.get('consent');
   const [loginError, setLoginError] = useState(false);
+  const [demoError, setDemoError] = useState<string | null>(null);
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [demoLoading, setDemoLoading] = useState(false);
 
   const handleGoogleLogin = async () => {
     try {
       setLoginError(false);
+      setDemoError(null);
+      setGoogleLoading(true);
       const supabase = createClient();
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -54,9 +60,44 @@ function LoginForm() {
       });
       if (error) {
         setLoginError(true);
+        setGoogleLoading(false);
       }
     } catch {
       setLoginError(true);
+      setGoogleLoading(false);
+    }
+  };
+
+  const handleDemoLogin = async () => {
+    const password = process.env.NEXT_PUBLIC_DEMO_PASSWORD;
+
+    try {
+      setLoginError(false);
+      setDemoError(null);
+
+      if (!password) {
+        setDemoError('Demo sifresi ortam degiskeninde tanimli degil.');
+        return;
+      }
+
+      setDemoLoading(true);
+      const supabase = createClient();
+      const { error } = await supabase.auth.signInWithPassword({
+        email: 'demo@sepetiq.com',
+        password,
+      });
+
+      if (error) {
+        setDemoError('Demo hesabi ile giris yapilamadi. Sifre veya Supabase ayarlarini kontrol edin.');
+        return;
+      }
+
+      router.push('/dashboard');
+      router.refresh();
+    } catch {
+      setDemoError('Demo hesabi ile giris sirasinda bir hata olustu.');
+    } finally {
+      setDemoLoading(false);
     }
   };
 
@@ -85,14 +126,28 @@ function LoginForm() {
                 : 'Giris basarisiz, tekrar deneyin.'}
             </div>
           )}
+          {demoError && (
+            <div className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+              {demoError}
+            </div>
+          )}
           <Button
             variant="outline"
             size="lg"
             className="w-full gap-2"
             onClick={handleGoogleLogin}
+            disabled={googleLoading || demoLoading}
           >
             <GoogleIcon />
-            Google ile Devam Et
+            {googleLoading ? 'Yonlendiriliyor...' : 'Google ile Devam Et'}
+          </Button>
+          <Button
+            size="lg"
+            className="w-full"
+            onClick={handleDemoLogin}
+            disabled={googleLoading || demoLoading}
+          >
+            {demoLoading ? 'Demo hesaba giriliyor...' : 'Demo Hesabiyla Giris'}
           </Button>
         </CardContent>
       </Card>

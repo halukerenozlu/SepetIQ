@@ -216,6 +216,15 @@ pnpm build
 8. Open `http://localhost:3000/dashboard` and sign in.
 9. Visit a supported product page and use the SepetIQ button.
 
+For jury review, sign in with the test account used for the demo. Analysis
+results are saved to the Supabase database and appear in the dashboard decision
+history after a product analysis completes.
+
+The dashboard Preferences page includes a reset action for clearing saved
+decision history, previous shopping records, and personalization settings. This
+is meant to prepare a clean demo state while keeping the signed-in account
+available for continued testing.
+
 The extension defaults to `http://localhost:8000` for the backend. If you use a different backend URL, update the `apiBase` value in Chrome extension storage.
 
 For a clean Chrome-profile smoke test on Windows, launch Chrome with a temporary
