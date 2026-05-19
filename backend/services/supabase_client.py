@@ -65,6 +65,23 @@ async def get_user_purchases(user_id: str) -> list[dict]:
     return await asyncio.to_thread(_sync_fetch)
 
 
+async def get_user_preferences(user_id: str) -> dict:
+    """Fetches user preferences, including monthly_budget, for a user."""
+    client = get_client()
+    if client is None:
+        return {}
+
+    def _sync_fetch() -> dict:
+        try:
+            result = client.table("user_preferences").select("*").eq("user_id", user_id).maybe_single().execute()
+            return result.data or {}
+        except Exception as exc:
+            logger.error("get_user_preferences failed for %s: %s", user_id, exc)
+            return {}
+
+    return await asyncio.to_thread(_sync_fetch)
+
+
 async def save_decision(decision_data: dict) -> str | None:
     """
     Inserts a completed decision into the decisions table.

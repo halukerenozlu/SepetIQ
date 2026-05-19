@@ -543,6 +543,16 @@ async def analyze(
 
     # Canonical product URL (used for store + logging; product.url takes precedence)
     product_url: str = request_data.product.url if request_data.product is not None else (request_data.product_url or "")
+    user_preferences: dict[str, Any] = {}
+    past_purchases: list[dict[str, Any]] = []
+
+    if user_id != "anonymous" and not user_id.startswith("demo_"):
+        user_preferences, past_purchases = await asyncio.gather(
+            supabase_client.get_user_preferences(user_id),
+            supabase_client.get_user_purchases(user_id),
+        )
+
+    monthly_budget = user_preferences.get("monthly_budget")
 
     decision_store.create(
         decision_id=decision_id,
@@ -565,8 +575,8 @@ async def analyze(
         # User context
         "user_id": user_id,
         "mode": request_data.mode,
-        "monthly_budget": None,
-        "past_purchases": [],
+        "monthly_budget": float(monthly_budget or 0.0) or None,
+        "past_purchases": past_purchases,
         "session_context": {},
         # Agent outputs (empty at start; pre-filled below when extension sends data)
         "product_context_output": None,

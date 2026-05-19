@@ -64,6 +64,22 @@ def _score_from_ratio(ratio: float) -> int:
     return 50
 
 
+def _score_from_monthly_budget(product_price: float, monthly_budget: float) -> int:
+    if product_price <= 0 or monthly_budget <= 0:
+        return 45
+
+    ratio = product_price / monthly_budget
+    if ratio < 0.15:
+        return 85
+    if ratio < 0.30:
+        return 70
+    if ratio < 0.50:
+        return 55
+    if ratio < 0.80:
+        return 35
+    return 15
+
+
 def _parse_money_value(raw: str) -> float | None:
     compact = raw.lower().replace("₺", " tl")
     if not any(token in compact for token in ("tl", "bütçe", "butce", "aylık", "aylik", "gelir", "maaş", "maas", "limit")):
@@ -122,7 +138,7 @@ def _continuous_budget_score(
     effective_budget = budget_from_answers or monthly_budget or float(budget_guard.get("monthly_budget") or 0.0)
 
     if product_price > 0 and effective_budget > 0:
-        return _score_from_ratio(product_price / effective_budget)
+        return _score_from_monthly_budget(product_price, effective_budget)
 
     budget_utilization = float(budget_guard.get("budget_utilization") or 0.0)
     if budget_utilization > 0:
