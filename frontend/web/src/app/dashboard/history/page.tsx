@@ -12,13 +12,13 @@ import { getDecisions, getDistinctCategories } from '@/lib/data';
 const verdictConfig: Record<Verdict | 'all', { label: string; color: string; bgColor: string; activeColor: string }> = {
   all: { label: 'Tümü', color: 'text-zinc-600', bgColor: 'bg-zinc-100', activeColor: 'bg-zinc-900 text-white' },
   buy: { label: 'Al', color: 'text-emerald-700', bgColor: 'bg-emerald-100', activeColor: 'bg-emerald-600 text-white' },
-  conditional_buy: { label: 'Koşullu', color: 'text-lime-700', bgColor: 'bg-lime-100', activeColor: 'bg-lime-600 text-white' },
+  conditional_buy: { label: 'Şartlı Al', color: 'text-lime-700', bgColor: 'bg-lime-100', activeColor: 'bg-lime-600 text-white' },
   wait: { label: 'Bekle', color: 'text-amber-700', bgColor: 'bg-amber-100', activeColor: 'bg-amber-500 text-white' },
   dont_buy: { label: 'Vazgeç', color: 'text-red-700', bgColor: 'bg-red-100', activeColor: 'bg-red-600 text-white' },
-  consider_alternative: { label: 'Alternatif', color: 'text-sky-700', bgColor: 'bg-sky-100', activeColor: 'bg-sky-600 text-white' },
+  consider_alternative: { label: 'Uygun Değil', color: 'text-sky-700', bgColor: 'bg-sky-100', activeColor: 'bg-sky-600 text-white' },
 };
 
-const verdictFilters = ['all', 'buy', 'wait', 'dont_buy', 'consider_alternative'] as const;
+const verdictFilters = ['all', 'buy', 'conditional_buy', 'wait', 'dont_buy', 'consider_alternative'] as const;
 
 function createHistoryHref(verdict: string, category?: string) {
   const params = new URLSearchParams();
@@ -53,7 +53,7 @@ export default async function HistoryPage({
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Karar Geçmişi</h1>
-          <p className="text-muted-foreground">Tüm alışveriş analizleriniz bir arada.</p>
+          <p className="text-muted-foreground">SepetIQ’nun sorguladığı ürünler ve sonuçları.</p>
         </div>
       </div>
 
@@ -115,7 +115,7 @@ export default async function HistoryPage({
                           {new Date(decision.created_at).toLocaleDateString('tr-TR')}
                         </span>
                       </div>
-                      <h3 className="text-lg font-bold text-zinc-900 transition-colors group-hover:text-emerald-600">
+                      <h3 className="line-clamp-2 text-lg font-bold text-zinc-900 transition-colors group-hover:text-emerald-600">
                         {decision.product_name}
                       </h3>
                       <p className="line-clamp-1 text-sm text-zinc-500">

@@ -135,6 +135,13 @@ sepetiq/
 
 ## Quick Start
 
+On Windows PowerShell, run this once from the project root before starting the backend:
+
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned
+& c:\dev\SepetIQ\backend\.venv\Scripts\Activate.ps1
+```
+
 ```bash
 # Backend
 cd backend

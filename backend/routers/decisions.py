@@ -98,6 +98,8 @@ _AGENT_NODES = frozenset(
 
 # SSE stream timeout per queue.get() (keepalive interval)
 _QUEUE_TIMEOUT_S: float = 1.0
+# Max time for a single graph phase before safe fallback
+_PIPELINE_PHASE_TIMEOUT_S: float = 45.0
 # Max wait time for user to answer questions
 _ANSWER_TIMEOUT_S: float = 300.0
 
@@ -194,6 +196,12 @@ def _is_gemini_timeout(exc: Exception) -> bool:
     return "gemini" in message and ("timeout" in message or "timed out" in message or "deadline" in message or "timeouterror" in exc_name)
 
 
+def _is_timeout_error(exc: Exception) -> bool:
+    message = str(exc).lower()
+    exc_name = exc.__class__.__name__.lower()
+    return isinstance(exc, asyncio.TimeoutError) or "timeout" in message or "timed out" in message or "timeouterror" in exc_name
+
+
 def _fallback_timeout_result() -> dict[str, Any]:
     return {
         "verdict_output": {
@@ -288,63 +296,64 @@ async def _run_pipeline(decision_id: str, initial_state: AgentState) -> None:
         nonlocal traces_before_parallel
 
         try:
-            async for event in graph.astream_events(input_state, config, version="v2"):
-                kind = event.get("event", "")
-                name = event.get("name", "")
+            async with asyncio.timeout(_PIPELINE_PHASE_TIMEOUT_S):
+                async for event in graph.astream_events(input_state, config, version="v2"):
+                    kind = event.get("event", "")
+                    name = event.get("name", "")
 
-                # ── Node started ──────────────────────────────────────────────
-                if kind == "on_chain_start" and name in _AGENT_NODES:
-                    node_start_times[name] = time.time()
+                    # ── Node started ──────────────────────────────────────────────
+                    if kind == "on_chain_start" and name in _AGENT_NODES:
+                        node_start_times[name] = time.time()
 
-                    # Track trace count just before parallel analysis begins
-                    if name == "parallel_analysis":
-                        gs = await graph.aget_state(config)
-                        traces_before_parallel = len(gs.values.get("agent_traces") or [])
+                        # Track trace count just before parallel analysis begins
+                        if name == "parallel_analysis":
+                            gs = await graph.aget_state(config)
+                            traces_before_parallel = len(gs.values.get("agent_traces") or [])
 
-                    display = _display_name(name)
-                    await push("agent_start", {"agent": display, "timestamp": _now()})
+                        display = _display_name(name)
+                        await push("agent_start", {"agent": display, "timestamp": _now()})
 
-                # ── Node completed ────────────────────────────────────────────
-                elif kind == "on_chain_end" and name in _AGENT_NODES:
-                    t0 = node_start_times.pop(name, time.time())
-                    duration_ms = int((time.time() - t0) * 1000)
-                    out: dict = event.get("data", {}).get("output") or {}
-                    display = _display_name(name)
+                    # ── Node completed ────────────────────────────────────────────
+                    elif kind == "on_chain_end" and name in _AGENT_NODES:
+                        t0 = node_start_times.pop(name, time.time())
+                        duration_ms = int((time.time() - t0) * 1000)
+                        out: dict = event.get("data", {}).get("output") or {}
+                        display = _display_name(name)
 
-                    if name == "parallel_analysis":
-                        # Emit one event per sub-agent using the traces they appended
-                        all_traces: list[dict] = out.get("agent_traces") or []
-                        new_traces = all_traces[traces_before_parallel:]
-                        if new_traces:
-                            for trace in new_traces:
+                        if name == "parallel_analysis":
+                            # Emit one event per sub-agent using the traces they appended
+                            all_traces: list[dict] = out.get("agent_traces") or []
+                            new_traces = all_traces[traces_before_parallel:]
+                            if new_traces:
+                                for trace in new_traces:
+                                    await push(
+                                        "agent_complete",
+                                        {
+                                            "agent": trace.get("agent", "unknown"),
+                                            "duration_ms": trace.get("duration_ms"),
+                                            "summary": trace.get("output_summary", "Tamamlandı"),
+                                        },
+                                    )
+                            else:
+                                # Fallback: single combined event
                                 await push(
                                     "agent_complete",
                                     {
-                                        "agent": trace.get("agent", "unknown"),
-                                        "duration_ms": trace.get("duration_ms"),
-                                        "summary": trace.get("output_summary", "Tamamlandı"),
+                                        "agent": "parallel_analysis",
+                                        "duration_ms": duration_ms,
+                                        "summary": "Paralel analiz tamamlandı",
                                     },
                                 )
                         else:
-                            # Fallback: single combined event
+                            summary = _extract_summary(name, out)
                             await push(
                                 "agent_complete",
                                 {
-                                    "agent": "parallel_analysis",
+                                    "agent": display,
                                     "duration_ms": duration_ms,
-                                    "summary": "Paralel analiz tamamlandı",
+                                    "summary": summary,
                                 },
                             )
-                    else:
-                        summary = _extract_summary(name, out)
-                        await push(
-                            "agent_complete",
-                            {
-                                "agent": display,
-                                "duration_ms": duration_ms,
-                                "summary": summary,
-                            },
-                        )
 
         except GraphInterrupt as exc:
             logger.debug("stream_phase interrupted: %s", exc)
@@ -360,7 +369,7 @@ async def _run_pipeline(decision_id: str, initial_state: AgentState) -> None:
         # ── Phase 1 ──────────────────────────────────────────────────────────
         phase_error = await stream_phase(initial_state)
         if phase_error is not None:
-            if _is_gemini_timeout(phase_error):
+            if _is_gemini_timeout(phase_error) or _is_timeout_error(phase_error):
                 await emit_timeout_fallback(phase_error)
                 return
             raise phase_error
@@ -394,7 +403,7 @@ async def _run_pipeline(decision_id: str, initial_state: AgentState) -> None:
             # ── Phase 2: resume ───────────────────────────────────────────────
             phase_error = await stream_phase(None)
             if phase_error is not None:
-                if _is_gemini_timeout(phase_error):
+                if _is_gemini_timeout(phase_error) or _is_timeout_error(phase_error):
                     await emit_timeout_fallback(phase_error)
                     return
                 raise phase_error

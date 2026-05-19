@@ -28,6 +28,14 @@ def _zero_scores() -> dict[str, int]:
     }
 
 
+def _mode_offset(mode: str) -> int:
+    if mode == "soft":
+        return -5
+    if mode == "strict":
+        return 8
+    return 0
+
+
 def _build_result(
     verdict: str,
     confidence_score: int,
@@ -143,13 +151,28 @@ async def run(state: AgentState) -> dict:
     total_score: float = product_score * w["product"] + need_score * w["need"] + budget_score * w["budget"] + behavior_score * w["behavior"]
 
     # ------------------------------------------------------------------
-    # Adım 4: Karar eşikleri
+    # Adım 4: Karar eşikleri ve kritik skor guard'ları
     # ------------------------------------------------------------------
-    if total_score >= 70:
+    offset = _mode_offset(mode)
+    buy_threshold = 72 + offset
+    conditional_threshold = 52 + offset
+    wait_threshold = 32 + offset
+
+    if product_score < 35:
+        verdict = "consider_alternative"
+    elif financial_risk == "high" and mode in ("balanced", "strict"):
+        verdict = "dont_buy" if mode == "strict" else "wait"
+    elif need_score < 25:
+        verdict = "dont_buy"
+    elif need_score < 40 and total_score >= conditional_threshold:
+        verdict = "wait"
+    elif review_confidence > 0 and product_score < 45:
+        verdict = "wait"
+    elif total_score >= buy_threshold and need_score >= 60 and budget_score >= 50:
         verdict = "buy"
-    elif total_score >= 50:
+    elif total_score >= conditional_threshold:
         verdict = "conditional_buy"
-    elif total_score >= 30:
+    elif total_score >= wait_threshold:
         verdict = "wait"
     else:
         verdict = "dont_buy"
@@ -190,6 +213,8 @@ async def run(state: AgentState) -> dict:
         flags.append("owns_similar_product")
     if need_score < 30:
         flags.append("low_need_score")
+    if product_score < 40:
+        flags.append("low_product_fit")
 
     # ------------------------------------------------------------------
     # Adım 7: Birincil neden ve önerilen eylem
@@ -218,11 +243,19 @@ async def run(state: AgentState) -> dict:
     }
     primary_reason: str = reason_map[weakest]
 
+    if verdict == "consider_alternative":
+        primary_reason = "Bu ürün mevcut sinyallere göre ihtiyaca yeterince uygun görünmüyor."
+    elif verdict == "dont_buy" and need_score < 25:
+        primary_reason = "Gerçek ihtiyaç sinyali çok zayıf; satın alma dürtüsel olabilir."
+    elif verdict == "wait" and need_score < 40:
+        primary_reason = "İhtiyaç netleşmeden satın alma kararını ertelemek daha güvenli."
+
     action_map: dict[str, str] = {
         "buy": "Satın alma kararınız sağlıklı görünüyor, devam edebilirsiniz.",
-        "conditional_buy": "Satın almadan önce ürün alternatiflerini karşılaştırmanızı öneririz.",
+        "conditional_buy": "Satın almadan önce bu ürünün risklerini ve kullanım ihtiyacınızı son kez kontrol edin.",
         "wait": "Bu satın almayı en az 24 saat ertelemenizi öneririz.",
         "dont_buy": "Bu satın almadan şimdilik kaçınmanızı öneririz.",
+        "consider_alternative": "Bu ürünü şimdi almak yerine ihtiyacınızı yeniden netleştirin.",
     }
     suggested_action: str = action_map[verdict]
 

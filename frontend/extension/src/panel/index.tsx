@@ -147,6 +147,13 @@ function getQuestionOptions(question: NeedQuestion): string[] {
   return [];
 }
 
+function getAgentSummary(agent: AgentProgress): string {
+  if (agent.id === "product_context" && agent.summary) {
+    return agent.summary;
+  }
+  return AGENT_HELP_TEXT[agent.id] ?? "Analiz adımı tamamlandı.";
+}
+
 export function DecisionPanel({
   events,
   status,
@@ -192,7 +199,7 @@ export function DecisionPanel({
         {(status === "idle" || status === "analyzing") && (
           <>
             {isSlowWarning && (
-              <div className="slow-warning">Beklenenden uzun sürüyor. Sonuç gelmezse tekrar deneyebilirsiniz.</div>
+              <div className="slow-warning">Analiz derinleştiriliyor. Yorumlar ve ihtiyaç sinyalleri son kez kontrol ediliyor.</div>
             )}
             <AgentProgressList progress={progress} />
           </>
@@ -239,9 +246,7 @@ function AgentProgressList({ progress }: { progress: AgentProgress[] }) {
           </span>
           <span className="agent-copy">
             <span className="agent-name">{agent.label}</span>
-            <span className="agent-summary">
-              {AGENT_HELP_TEXT[agent.id] ?? "Analiz adımı tamamlandı."}
-            </span>
+            <span className="agent-summary">{getAgentSummary(agent)}</span>
           </span>
         </li>
       ))}

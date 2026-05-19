@@ -48,7 +48,9 @@ class QuestionsOutput(BaseModel):
 _SYSTEM_PROMPT = (
     "You are a need-assessment assistant for a shopping AI. "
     "Generate exactly 3 questions in Turkish to assess whether the user truly needs this product. "
-    "Questions should uncover: actual use case, frequency of use, whether they already own something similar. "
+    "Questions should be specific to the product category, price, and user profile. "
+    "Uncover: actual use case, frequency of use, whether they already own something similar, and purchase trigger. "
+    "Keep every option short enough for a compact browser extension UI. "
     "Respond ONLY with valid JSON. No markdown, no explanation."
 )
 
@@ -82,11 +84,13 @@ Generate 3 questions. Return this exact JSON:
 }}
 
 Rules:
-- q1: ask about use frequency or main use case
-- q2: ask whether they already own something similar (yes_no)
-- q3: ask about urgency or when they actually need it
+- q1: ask about product-specific use frequency or main use case
+- q2: ask whether they already own something similar that still works (yes_no)
+- q3: ask about urgency or purchase trigger
 - For "impulsive" profile, make questions more probing
 - For "strict" mode, add a question about budget planning
+- Options should be at most 45 characters
+- Avoid generic wording like "Bu ürün"; mention the product type when possible
 - All text must be in Turkish\
 """
 
@@ -138,6 +142,91 @@ def _get_chain():
     return _structured_chain
 
 
+def _short_product_type(product_name: str, category: str) -> str:
+    """Returns a compact product type for Turkish question text."""
+    text = f"{product_name} {category}".lower()
+    if any(word in text for word in ("tıraş", "traş", "oneblade", "sakal")):
+        return "bu tıraş makinesi"
+    if any(word in text for word in ("kahve", "espresso", "öğüt")):
+        return "bu kahve ürünü"
+    if any(word in text for word in ("saat", "watch", "bileklik")):
+        return "bu akıllı saat"
+    if any(word in text for word in ("kulaklık", "headphone", "earbuds")):
+        return "bu kulaklık"
+    if any(word in text for word in ("telefon", "phone", "iphone", "galaxy")):
+        return "bu telefon"
+    if any(word in text for word in ("laptop", "notebook", "bilgisayar")):
+        return "bu bilgisayar"
+    if any(word in text for word in ("parfüm", "krem", "serum", "kozmetik")):
+        return "bu bakım ürünü"
+    return "bu ürünü"
+
+
+def _build_fallback_questions(
+    product_name: str,
+    category: str,
+    mode: str,
+    behavior_profile: dict[str, Any],
+) -> list[dict[str, Any]]:
+    product_type = _short_product_type(product_name, category)
+    profile_tag = str(behavior_profile.get("profile_tag") or "unknown")
+    q3_text = f"{product_type.capitalize()} için satın alma sebebin ne?"
+    q3_options = [
+        "Net bir ihtiyacım var",
+        "İndirim baskısı var",
+        "Merak ettim, emin değilim",
+    ]
+
+    if mode == "strict":
+        q3_text = f"{product_type.capitalize()} bütçende planlı mı?"
+        q3_options = ["Evet, planladım", "Hayır, ani karar", "Emin değilim"]
+    elif profile_tag == "impulsive":
+        q3_text = f"{product_type.capitalize()} isteği nereden geldi?"
+        q3_options = ["Gerçek ihtiyaç", "İndirim/reklam", "Anlık heves"]
+
+    return [
+        {
+            "id": "q1",
+            "text": f"{product_type.capitalize()} hangi sıklıkla kullanacaksın?",
+            "type": "multiple_choice",
+            "options": ["Her gün/haftalık", "Ayda birkaç kez", "Nadiren"],
+        },
+        {
+            "id": "q2",
+            "text": "Aynı işi gören çalışan bir ürünün var mı?",
+            "type": "yes_no",
+            "options": ["Evet", "Hayır"],
+        },
+        {
+            "id": "q3",
+            "text": q3_text,
+            "type": "multiple_choice",
+            "options": q3_options,
+        },
+    ]
+
+
+def _questions_are_demo_ready(questions: list[dict[str, Any]]) -> bool:
+    if len(questions) != 3:
+        return False
+
+    for question in questions:
+        text = str(question.get("text") or "")
+        options = question.get("options") or []
+        if len(text) < 12 or len(text) > 150:
+            return False
+        if question.get("type") == "yes_no":
+            if options != ["Evet", "Hayır"]:
+                question["options"] = ["Evet", "Hayır"]
+            continue
+        if not isinstance(options, list) or not 2 <= len(options) <= 4:
+            return False
+        if any(len(str(option)) > 56 for option in options):
+            return False
+
+    return True
+
+
 # ---------------------------------------------------------------------------
 # İkinci çalışma: saf Python skorlama
 # ---------------------------------------------------------------------------
@@ -146,34 +235,74 @@ def _get_chain():
 def _score_need(
     user_answers: dict[str, Any],
     behavior_profile: dict[str, Any],
+    budget_guard: dict[str, Any],
     mode: str,
 ) -> tuple[int, str, str]:
     """(need_score, need_level, scoring_rationale) döndürür."""
     score = 50
+    rationale_parts: list[str] = []
+
+    q1 = str(user_answers.get("q1") or "").lower()
+    q2 = str(user_answers.get("q2") or "").lower()
+    q3 = str(user_answers.get("q3") or "").lower()
+
+    # q1: kullanım sıklığı / ana amaç
+    if any(token in q1 for token in ("her gün", "haftalık", "günlük", "sık", "düzenli")):
+        score += 20
+        rationale_parts.append("düzenli kullanım sinyali var")
+    elif any(token in q1 for token in ("ayda", "bazen", "ara sıra")):
+        score += 6
+    elif any(token in q1 for token in ("nadiren", "özel durum", "emin değil")):
+        score -= 10
+        rationale_parts.append("kullanım sıklığı düşük görünüyor")
 
     # q2: benzer ürüne zaten sahip → ihtiyacı düşür
-    if user_answers.get("q2") == "Evet":
-        score -= 25
+    if "evet" in q2:
+        score -= 22
+        rationale_parts.append("aynı işi gören ürün zaten var")
+    elif "hayır" in q2:
+        score += 15
+        rationale_parts.append("mevcut alternatif yok")
 
     # q3: aciliyet sinyalleri
-    urgency_answer = str(user_answers.get("q3") or "").lower()
-    if "hemen" in urgency_answer or "bugün" in urgency_answer:
-        score += 15
-    elif "emin değilim" in urgency_answer or "belki" in urgency_answer:
-        score -= 10
+    if any(token in q3 for token in ("net", "planlad", "ihtiyaç", "iş", "gerekiyor")):
+        score += 12
+        rationale_parts.append("satın alma gerekçesi net")
+    elif any(token in q3 for token in ("hemen", "bugün")):
+        score += 6
+    if any(token in q3 for token in ("indirim", "reklam", "sosyal", "ani", "heves")):
+        score -= 20
+        rationale_parts.append("tetikleyici alışveriş sinyali var")
+    elif any(token in q3 for token in ("emin değil", "belki", "merak")):
+        score -= 12
+        rationale_parts.append("satın alma motivasyonu net değil")
+
+    # Geçmiş ve bütçe sinyalleri
+    if behavior_profile.get("similar_past_purchase"):
+        score -= 18
+        rationale_parts.append("yakın geçmişte benzer alışveriş var")
+
+    financial_risk = str(budget_guard.get("financial_risk") or "unknown")
+    if financial_risk == "high":
+        score -= 12
+        rationale_parts.append("bütçe riski yüksek")
+    elif financial_risk == "low":
+        score += 5
 
     # Davranış profili modifiye
     impulsivity_score = int(behavior_profile.get("impulsivity_score") or 50)
     if impulsivity_score >= 70:
         score -= 15  # dürtüsel alıcı → aciliyete güvenme
+        rationale_parts.append("dürtüsel alışveriş eğilimi tespit edildi")
     elif impulsivity_score <= 30:
         score += 10  # bilinçli alıcı → ihtiyacına güven
 
     # Mod modifiye
     if mode == "strict":
-        score -= 10
+        score -= 8
+        rationale_parts.append("sıkı mod daha temkinli değerlendiriyor")
     elif mode == "soft":
-        score += 5
+        score += 4
 
     need_score = max(0, min(100, score))
 
@@ -185,17 +314,8 @@ def _score_need(
     else:
         need_level = "low"
 
-    # scoring_rationale — Gemini çağrısı yok, Python'da oluştur
-    rationale_parts: list[str] = []
-    if user_answers.get("q2") == "Evet":
-        rationale_parts.append("benzer bir ürüne zaten sahip")
-    if impulsivity_score >= 70:
-        rationale_parts.append("dürtüsel alışveriş eğilimi tespit edildi")
-    if mode == "strict":
-        rationale_parts.append("disiplinli mod aktif")
-
     if rationale_parts:
-        scoring_rationale = "İhtiyaç skoru düşürüldü: " + ", ".join(rationale_parts) + "."
+        scoring_rationale = "İhtiyaç skoru şu sinyallere göre hesaplandı: " + ", ".join(rationale_parts[:4]) + "."
     else:
         scoring_rationale = f"İhtiyaç skoru {need_score}/100 olarak hesaplandı."
 
@@ -217,6 +337,7 @@ async def run(state: AgentState) -> dict:
     category: str = state.get("product_category") or "electronics"
     price: float = state.get("product_price") or 0.0
     behavior_profile: dict[str, Any] = state.get("behavior_profile_output") or {}
+    budget_guard: dict[str, Any] = state.get("budget_guard_output") or {}
 
     profile_tag: str = behavior_profile.get("profile_tag") or "unknown"
     impulsivity_score: int = int(behavior_profile.get("impulsivity_score") or 50)
@@ -254,11 +375,11 @@ async def run(state: AgentState) -> dict:
         )
         if extracted is not None:
             questions = [q.model_dump() for q in (extracted.questions or [])]
-            if len(questions) == 3:
+            if _questions_are_demo_ready(questions):
                 gemini_ok = True
 
         if not gemini_ok:
-            questions = list(_FALLBACK_QUESTIONS)
+            questions = _build_fallback_questions(product_name, category, mode, behavior_profile)
 
         result: dict[str, Any] = {
             "questions": questions,
@@ -291,7 +412,12 @@ async def run(state: AgentState) -> dict:
     existing_output: dict[str, Any] = state.get("need_analyzer_output") or {}
     questions = existing_output.get("questions") or list(_FALLBACK_QUESTIONS)
 
-    need_score, need_level, scoring_rationale = _score_need(user_answers, behavior_profile, mode)
+    need_score, need_level, scoring_rationale = _score_need(
+        user_answers,
+        behavior_profile,
+        budget_guard,
+        mode,
+    )
 
     result = {
         "questions": questions,

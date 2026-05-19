@@ -38,10 +38,10 @@ const COLORS: Record<Verdict, string> = {
 
 const VERDICT_LABELS: Record<Verdict, string> = {
   buy: 'Al',
-  conditional_buy: 'Koşullu',
+  conditional_buy: 'Şartlı Al',
   wait: 'Bekle',
   dont_buy: 'Vazgeç',
-  consider_alternative: 'Alternatif',
+  consider_alternative: 'Uygun Değil',
 };
 
 const SAVINGS_VERDICTS = new Set<Verdict>(['wait', 'dont_buy', 'consider_alternative']);
@@ -79,7 +79,7 @@ function getMostQuestionedCategory(decisions: DashboardDecision[]) {
     return acc;
   }, {});
 
-  return Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? '-';
+  return Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? 'Yeterli veri yok';
 }
 
 function formatDuration(decisions: DashboardDecision[]) {
@@ -101,7 +101,7 @@ export default function StatsClientPage({ decisions }: { decisions: DashboardDec
       <div className="space-y-8 pb-10">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">İstatistikler</h1>
-          <p className="text-muted-foreground">Alışveriş alışkanlıklarınızın veri odaklı analizi.</p>
+          <p className="text-muted-foreground">Karar dağılımı, tasarruf ve skor trendi.</p>
         </div>
         <DashboardEmptyState
           tone="stats"
@@ -153,7 +153,7 @@ export default function StatsClientPage({ decisions }: { decisions: DashboardDec
               <ArrowUpRight className="h-5 w-5 opacity-80" />
             </div>
             <div className="text-3xl font-bold">%{savingsRate}</div>
-            <p className="mt-1 text-sm opacity-90">Tasarrufa Yönelen Karar Oranı</p>
+            <p className="mt-1 text-sm opacity-90">Bekle veya vazgeç karar oranı</p>
           </CardContent>
         </Card>
         <Card>

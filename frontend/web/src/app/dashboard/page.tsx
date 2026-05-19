@@ -18,10 +18,10 @@ import { getDashboardStats, getDecisions } from '@/lib/data';
 
 const verdictConfig: Record<Verdict, { label: string; color: string; bgColor: string }> = {
   buy: { label: 'Al', color: 'text-emerald-700', bgColor: 'bg-emerald-100' },
-  conditional_buy: { label: 'Koşullu', color: 'text-lime-700', bgColor: 'bg-lime-100' },
+  conditional_buy: { label: 'Şartlı Al', color: 'text-lime-700', bgColor: 'bg-lime-100' },
   wait: { label: 'Bekle', color: 'text-amber-700', bgColor: 'bg-amber-100' },
   dont_buy: { label: 'Vazgeç', color: 'text-red-700', bgColor: 'bg-red-100' },
-  consider_alternative: { label: 'Alternatif', color: 'text-sky-700', bgColor: 'bg-sky-100' },
+  consider_alternative: { label: 'Uygun Değil', color: 'text-sky-700', bgColor: 'bg-sky-100' },
 };
 
 function StatCard({
@@ -67,8 +67,8 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground">Kişisel harcama asistanınızın özeti.</p>
+        <h1 className="text-3xl font-bold tracking-tight">Kontrol Paneli</h1>
+        <p className="text-muted-foreground">Satın alma kararlarınızın kısa özeti.</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -131,7 +131,7 @@ export default async function DashboardPage() {
                       className="group cursor-pointer transition-colors hover:bg-zinc-50"
                     >
                       <td className="px-6 py-4">
-                        <Link href={`/decisions/${decision.id}`} className="font-medium text-zinc-900 group-hover:text-emerald-600">
+                        <Link href={`/decisions/${decision.id}`} className="block max-w-3xl truncate font-medium text-zinc-900 group-hover:text-emerald-600">
                           {decision.product_name}
                         </Link>
                       </td>
