@@ -120,6 +120,12 @@ Use it before analyzing a product so extension requests are tied to the demo
 account. Completed analyses are stored in Supabase and shown in the dashboard
 decision history.
 
+### Sign-in Options
+
+- Google OAuth or demo account — both are available on the login screen. For
+  quick jury access without a Google account, use the **Demo Hesabıyla Giriş**
+  button.
+
 ---
 
 ## Tech Stack
