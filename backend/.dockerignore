@@ -1,0 +1,10 @@
+__pycache__/
+*.py[oc]
+.venv/
+.ruff_cache/
+.env
+.env.*
+.flake8
+*.md
+.git/
+.github/
