@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
+import { createClient } from "@supabase/supabase-js";
 
-const DASHBOARD_URL = "http://localhost:3000";
+const DASHBOARD_URL = import.meta.env.VITE_DASHBOARD_URL ?? "http://localhost:3000";
+const DEMO_EMAIL = "demo@sepetiq.com";
 
 const SUPPORTED_URL_PATTERNS = [
   /trendyol\.com/,
@@ -86,7 +88,7 @@ export function Popup() {
         {isLoggedIn ? (
           <LoggedInView onSupportedSite={onSupportedSite} />
         ) : (
-          <LoggedOutView />
+          <LoggedOutView onDemoLogin={setAuth} />
         )}
       </div>
     </div>
@@ -115,16 +117,67 @@ function StatusCard({
   );
 }
 
-function LoggedOutView() {
+function LoggedOutView({ onDemoLogin }: { onDemoLogin: (auth: AuthState) => void }) {
+  const [demoLoading, setDemoLoading] = useState(false);
+  const [demoError, setDemoError] = useState<string | null>(null);
+
+  const handleDemoLogin = async () => {
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    const demoPassword = import.meta.env.VITE_DEMO_PASSWORD;
+
+    setDemoError(null);
+
+    if (!supabaseUrl || !supabaseAnonKey || !demoPassword) {
+      setDemoError("Demo girişi için ortam değişkenleri eksik.");
+      return;
+    }
+
+    setDemoLoading(true);
+
+    try {
+      const supabase = createClient(supabaseUrl, supabaseAnonKey);
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: DEMO_EMAIL,
+        password: demoPassword,
+      });
+
+      if (error || !data.session) {
+        setDemoError("Demo hesabıyla giriş yapılamadı.");
+        return;
+      }
+
+      const nextAuth = {
+        userId: data.session.user.id,
+        token: data.session.access_token,
+      };
+
+      await chrome.storage.local.set({
+        supabase_user_id: nextAuth.userId,
+        supabase_token: nextAuth.token,
+      });
+
+      onDemoLogin(nextAuth);
+    } catch {
+      setDemoError("Demo girişi sırasında bir hata oluştu.");
+    } finally {
+      setDemoLoading(false);
+    }
+  };
+
   return (
     <div style={s.section}>
       <div style={s.callout}>
         <strong>Web paneliyle bağlantı kurulmadı.</strong>
         <span>Giriş yaptıktan sonra karar geçmişi, skorlar ve demo verileri dashboard'da senkronize olur.</span>
       </div>
+      {demoError && <div style={s.errorMessage}>{demoError}</div>}
       <a href={`${DASHBOARD_URL}/login`} target="_blank" rel="noreferrer" style={s.primaryButton}>
         Google ile Giriş Yap
       </a>
+      <button type="button" onClick={handleDemoLogin} disabled={demoLoading} style={s.secondaryActionButton}>
+        {demoLoading ? "Demo hesaba giriliyor..." : "Demo Hesabıyla Giriş"}
+      </button>
     </div>
   );
 }
@@ -295,6 +348,31 @@ const s: Record<string, React.CSSProperties> = {
     fontWeight: 800,
     textDecoration: "none",
     cursor: "pointer",
+  },
+  secondaryActionButton: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: 38,
+    padding: "0 14px",
+    borderRadius: 8,
+    border: "1px solid #e5e7eb",
+    background: "#ffffff",
+    color: "#374151",
+    fontSize: 13,
+    fontWeight: 800,
+    textDecoration: "none",
+    cursor: "pointer",
+  },
+  errorMessage: {
+    borderRadius: 8,
+    background: "#fef2f2",
+    border: "1px solid #fecaca",
+    color: "#b91c1c",
+    fontSize: 12,
+    fontWeight: 700,
+    lineHeight: 1.45,
+    padding: "9px 10px",
   },
   spinner: {
     width: 22,
