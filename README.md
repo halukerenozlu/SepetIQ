@@ -135,21 +135,25 @@ sepetiq/
 
 ## Quick Start
 
-On Windows PowerShell, run this once from the project root before starting the backend:
+Start the backend first in its own terminal. Do not manually activate
+`backend/.venv`; `uv run` uses the correct environment automatically.
 
 ```powershell
-(Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned);
-(& c:\dev\SepetIQ\backend\.venv\Scripts\Activate.ps1)
-```
-
-```bash
-# Backend
 cd backend
 uv sync
-uv run uvicorn main:app --reload
+uv run uvicorn main:app --reload --port 8000
+```
 
+Then start the frontend apps in separate terminals:
+
+```powershell
 # Web (Next.js)
 cd frontend/web
+pnpm install
+pnpm dev
+
+# Local demo store
+cd demo
 pnpm install
 pnpm dev
 
@@ -158,6 +162,25 @@ cd frontend/extension
 pnpm install
 pnpm build
 ```
+
+### Windows / VS Code Note
+
+If VS Code automatically activates the backend virtualenv when a Python file is
+opened, it can inject `Activate.ps1` into the current terminal and interrupt
+running `pnpm dev`, `pnpm build`, or `uvicorn --reload` processes.
+
+Keep this workspace setting in `.vscode/settings.json`:
+
+```json
+{
+  "python.terminal.activateEnvironment": false,
+  "python.terminal.activateEnvInCurrentTerminal": false
+}
+```
+
+After changing this setting, close the affected terminals and open new ones.
+Backend should run only in the backend terminal with `uv run`; web, demo, and
+extension terminals should use normal `pnpm` commands.
 
 ---
 
