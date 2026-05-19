@@ -98,6 +98,20 @@ hardening task.
 
 ---
 
+## Demo Access
+
+**Web app:** [sepetiq.vercel.app](https://sepetiq.vercel.app)
+
+Use the **Demo Hesabıyla Giriş** button on the login screen. No sign-up or
+personal email is required for review.
+
+The browser extension also has a **Demo Hesabıyla Giriş** button in its popup.
+Use it before analyzing a product so extension requests are tied to the demo
+account. Completed analyses are stored in Supabase and shown in the dashboard
+decision history.
+
+---
+
 ## Tech Stack
 
 | Layer     | Technology                                             | Package Manager |
