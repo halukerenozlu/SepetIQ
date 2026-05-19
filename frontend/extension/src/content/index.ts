@@ -30,7 +30,7 @@ const GUEST_LIMIT = 10;
 const GUEST_COUNT_KEY = "sepetiq_guest_count";
 
 const SLOW_THRESHOLD_MS = 15_000;
-const ABORT_THRESHOLD_MS = 35_000;
+const ABORT_THRESHOLD_MS = 120_000;
 const ADD_TO_CART_RESCAN_MS = 1500;
 const FAB_EDGE_GAP_PX = 24;
 const FAB_STACK_GAP_PX = 16;

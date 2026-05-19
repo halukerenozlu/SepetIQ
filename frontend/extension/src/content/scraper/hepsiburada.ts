@@ -3,7 +3,16 @@ import type { ScrapedProduct } from "../../shared/types";
 
 export class HepsiburadaScraper extends BaseScraper {
   canHandle(url: string): boolean {
-    return url.includes("hepsiburada.com");
+    if (!url.includes("hepsiburada.com")) return false;
+
+    return (
+      /-(?:pm|p)-[A-Z0-9]+/i.test(window.location.pathname) ||
+      Boolean(
+        document.querySelector(
+          'h1[data-test-id="title"], [data-test-id="price-current"], [itemtype*="schema.org/Product"]',
+        ),
+      )
+    );
   }
 
   override getAddToCartSelectors(): string[] {
@@ -23,11 +32,15 @@ export class HepsiburadaScraper extends BaseScraper {
       const productId = this.extractProductId();
       const reviewCount = this.extractReviewCount();
       const imageUrl = this.extractImageUrl();
+      const productName = this.extractProductName() ?? product?.name?.trim() ?? null;
+
+      if (!productName) return null;
+
       return {
         url: window.location.href,
         productId,
         product_id: productId,
-        name: this.extractProductName() ?? product?.name ?? null,
+        name: productName,
         price: this.extractPrice() ?? (offer?.price ? this.parsePrice(String(offer.price)) : null),
         currency: offer?.priceCurrency ?? "TRY",
         rating: this.extractRating(),

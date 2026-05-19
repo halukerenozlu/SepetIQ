@@ -17,6 +17,37 @@ function readObject(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" ? (value as Record<string, unknown>) : {};
 }
 
+function isExtensionContextValid(): boolean {
+  try {
+    return Boolean(chrome.runtime?.id);
+  } catch {
+    return false;
+  }
+}
+
+function saveSession(userId: string, token: string): void {
+  if (!isExtensionContextValid()) return;
+
+  try {
+    chrome.storage.local.set({
+      supabase_user_id: userId,
+      supabase_token: token,
+    });
+  } catch {
+    // The extension was reloaded while this dashboard tab was open.
+  }
+}
+
+function clearSession(): void {
+  if (!isExtensionContextValid()) return;
+
+  try {
+    chrome.storage.local.remove(["supabase_user_id", "supabase_token"]);
+  } catch {
+    // The extension was reloaded while this dashboard tab was open.
+  }
+}
+
 window.addEventListener("message", (event: MessageEvent) => {
   if (
     window.location.origin !== DASHBOARD_ORIGIN ||
@@ -33,12 +64,9 @@ window.addEventListener("message", (event: MessageEvent) => {
   const token = typeof data.accessToken === "string" ? data.accessToken : null;
 
   if (userId && token) {
-    chrome.storage.local.set({
-      supabase_user_id: userId,
-      supabase_token: token,
-    });
+    saveSession(userId, token);
     return;
   }
 
-  chrome.storage.local.remove(["supabase_user_id", "supabase_token"]);
+  clearSession();
 });

@@ -183,8 +183,19 @@ export abstract class BaseScraper {
     } else if (cleaned.includes(",")) {
       // Only comma — treat as decimal separator: "999,90" → "999.90"
       cleaned = cleaned.replace(",", ".");
+    } else if (cleaned.includes(".")) {
+      const parts = cleaned.split(".");
+      const isTurkishThousands =
+        parts.length > 1 &&
+        parts.slice(1).every((part) => part.length === 3) &&
+        parts[0].length >= 1 &&
+        parts[0].length <= 3;
+
+      if (isTurkishThousands) {
+        // Only dots with 3-digit groups are thousands: "119.000" → "119000"
+        cleaned = parts.join("");
+      }
     }
-    // If only dots, treat as-is (may be thousands separator, hard to tell)
 
     const num = parseFloat(cleaned);
     return isNaN(num) ? null : num;

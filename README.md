@@ -83,13 +83,13 @@ Product Context → Review Risk → Behavior Profile
 For the hackathon demo, the extension is optimized for a focused set of real
 shopping sites instead of broad production coverage:
 
-| Site | Scope |
-| ---- | ----- |
-| n11 | Product pages |
-| Trendyol | Product pages |
-| Hepsiburada | Product pages |
-| Amazon Turkey | `amazon.com.tr` product pages |
-| Local demo store | `localhost:3001/product/*` |
+| Site             | Scope                         |
+| ---------------- | ----------------------------- |
+| n11              | Product pages                 |
+| Trendyol         | Product pages                 |
+| Hepsiburada      | Product pages                 |
+| Amazon Turkey    | `amazon.com.tr` product pages |
+| Local demo store | `localhost:3001/product/*`    |
 
 This list is intentionally small: the goal is to prove that SepetIQ can read
 real product pages, open the decision panel, and run the agentic analysis flow
@@ -138,8 +138,8 @@ sepetiq/
 On Windows PowerShell, run this once from the project root before starting the backend:
 
 ```powershell
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned
-& c:\dev\SepetIQ\backend\.venv\Scripts\Activate.ps1
+(Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned);
+(& c:\dev\SepetIQ\backend\.venv\Scripts\Activate.ps1)
 ```
 
 ```bash
@@ -189,11 +189,26 @@ pnpm build
 4. Open `chrome://extensions` in Chrome.
 5. Enable **Developer mode**.
 6. Click **Load unpacked**.
-7. Select `frontend/extension/dist`.
+7. Select `frontend/extension/dist` (the folder that contains `manifest.json`).
 8. Open `http://localhost:3000/dashboard` and sign in.
 9. Visit a supported product page and use the SepetIQ button.
 
 The extension defaults to `http://localhost:8000` for the backend. If you use a different backend URL, update the `apiBase` value in Chrome extension storage.
+
+For a clean Chrome-profile smoke test on Windows, launch Chrome with a temporary
+profile and then use the same manual **Load unpacked** flow:
+
+```powershell
+& "C:\Program Files\Google\Chrome\Application\chrome.exe" `
+  --user-data-dir="C:\dev\SepetIQ\.tmp\chrome-extension-test" `
+  --no-first-run `
+  --no-default-browser-check `
+  chrome://extensions/
+```
+
+Do not rely on `--load-extension` for this smoke test: current Google Chrome
+builds ignore that flag for local unpacked extensions, so the manual
+`chrome://extensions` flow is the reliable path.
 
 ---
 

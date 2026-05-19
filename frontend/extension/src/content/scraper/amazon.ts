@@ -84,17 +84,54 @@ export class AmazonScraper extends BaseScraper {
 
   private extractPrice(offer: AmazonJsonLdOffer | null): number | null {
     if (offer?.price !== undefined) {
-      return this.parsePrice(String(offer.price));
+      const parsed = this.parsePrice(String(offer.price));
+      if (parsed !== null) return parsed;
     }
+
+    const splitPrice = this.extractSplitPrice();
+    if (splitPrice !== null) return splitPrice;
 
     const priceText =
       this.safeQueryText(".a-price .a-offscreen") ??
+      this.safeQueryText("#corePrice_feature_div .a-offscreen") ??
+      this.safeQueryText("#corePriceDisplay_desktop_feature_div .a-offscreen") ??
       this.safeQueryText("#priceblock_ourprice") ??
       this.safeQueryText("#priceblock_dealprice") ??
       this.safeQueryText("#corePriceDisplay_desktop_feature_div .a-price") ??
       this.getMetaContent('meta[property="product:price:amount"]');
 
     return priceText ? this.parsePrice(priceText) : null;
+  }
+
+  private extractSplitPrice(): number | null {
+    const containers = [
+      "#corePriceDisplay_desktop_feature_div",
+      "#corePrice_feature_div",
+      "#apex_desktop",
+      "#centerCol",
+    ];
+
+    for (const selector of containers) {
+      const container = document.querySelector(selector);
+      const whole = container
+        ?.querySelector(".a-price-whole")
+        ?.textContent?.replace(/[^\d.,]/g, "")
+        .trim();
+      const fraction = container
+        ?.querySelector(".a-price-fraction")
+        ?.textContent?.replace(/[^\d]/g, "")
+        .trim();
+
+      if (!whole) continue;
+
+      const wholeValue = this.parsePrice(whole);
+      if (wholeValue === null) continue;
+
+      const fractionValue = fraction ? Number.parseInt(fraction, 10) / 100 : 0;
+      return wholeValue + (Number.isNaN(fractionValue) ? 0 : fractionValue);
+    }
+
+    return null;
   }
 
   private extractCurrency(): string {
