@@ -15,6 +15,7 @@
 
 import { MSG } from "../shared/messages";
 import type { ExtensionMessage } from "../shared/messages";
+import { createClient } from "@supabase/supabase-js";
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 
@@ -24,6 +25,8 @@ const DASHBOARD_ORIGINS = [
   "https://sepetiq.vercel.app",
 ];
 const SUPABASE_COOKIE_RE = /^sb-.+-auth-token(?:\.\d+)?$/;
+const TOKEN_REFRESH_WINDOW_S = 5 * 60;
+const DEMO_EMAIL = "demo@sepetiq.com";
 
 const activeAnalysis = new Map<number, AbortController>();
 
@@ -41,12 +44,74 @@ async function getApiBase(): Promise<string> {
 }
 
 async function getStoredSupabaseToken(): Promise<string | null> {
-  return new Promise((resolve) => {
+  const storedToken = await new Promise<string | null>((resolve) => {
     chrome.storage.local.get("supabase_token", (result) => {
       const token = result["supabase_token"];
       resolve(typeof token === "string" && token.length > 0 ? token : null);
     });
   });
+
+  if (storedToken && !isJwtExpiringSoon(storedToken)) {
+    return storedToken;
+  }
+
+  return refreshDemoSupabaseToken();
+}
+
+function getJwtExpirationSeconds(token: string): number | null {
+  const [, payload] = token.split(".");
+  if (!payload) return null;
+
+  const normalized = payload.replace(/-/g, "+").replace(/_/g, "/");
+  const padded = normalized.padEnd(
+    normalized.length + ((4 - (normalized.length % 4)) % 4),
+    "=",
+  );
+  const parsed = parseJson(safeBase64Decode(padded) ?? "");
+
+  return isRecord(parsed) && typeof parsed.exp === "number"
+    ? parsed.exp
+    : null;
+}
+
+function isJwtExpiringSoon(token: string): boolean {
+  const expiresAt = getJwtExpirationSeconds(token);
+  if (!expiresAt) return true;
+
+  const nowSeconds = Math.floor(Date.now() / 1000);
+  return expiresAt - nowSeconds <= TOKEN_REFRESH_WINDOW_S;
+}
+
+async function refreshDemoSupabaseToken(): Promise<string | null> {
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+  const demoPassword = import.meta.env.VITE_DEMO_PASSWORD;
+
+  if (!supabaseUrl || !supabaseAnonKey || !demoPassword) {
+    console.warn("[SepetIQ SW] Demo Supabase credentials are not configured");
+    return null;
+  }
+
+  const supabase = createClient(supabaseUrl, supabaseAnonKey);
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email: DEMO_EMAIL,
+    password: demoPassword,
+  });
+
+  if (error || !data.session?.access_token) {
+    console.warn(
+      "[SepetIQ SW] Demo Supabase token refresh failed",
+      error?.message,
+    );
+    return null;
+  }
+
+  await chrome.storage.local.set({
+    supabase_user_id: data.user?.id ?? extractUserIdFromJwt(data.session.access_token),
+    supabase_token: data.session.access_token,
+  });
+
+  return data.session.access_token;
 }
 
 async function getBackendHeaders(
