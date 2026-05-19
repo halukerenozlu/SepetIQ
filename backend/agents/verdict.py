@@ -30,10 +30,123 @@ def _zero_scores() -> dict[str, int]:
 
 def _mode_offset(mode: str) -> int:
     if mode == "soft":
-        return -5
+        return -10
     if mode == "strict":
-        return 8
+        return 10
     return 0
+
+
+def _clamp_score(value: float, lower: int = 0, upper: int = 100) -> int:
+    return max(lower, min(upper, int(round(value))))
+
+
+def _score_from_ratio(ratio: float) -> int:
+    """Maps product_price / budget to a continuous 0-100 affordability score."""
+    points: list[tuple[float, float]] = [
+        (0.0, 100.0),
+        (0.30, 85.0),
+        (0.80, 40.0),
+        (1.20, 15.0),
+        (2.00, 0.0),
+    ]
+
+    if ratio <= points[0][0]:
+        return int(points[0][1])
+    if ratio >= points[-1][0]:
+        return int(points[-1][1])
+
+    for (left_ratio, left_score), (right_ratio, right_score) in zip(points, points[1:], strict=True):
+        if left_ratio <= ratio <= right_ratio:
+            span = right_ratio - left_ratio
+            progress = (ratio - left_ratio) / span if span else 0.0
+            return _clamp_score(left_score + (right_score - left_score) * progress)
+
+    return 50
+
+
+def _parse_money_value(raw: str) -> float | None:
+    compact = raw.lower().replace("₺", " tl")
+    if not any(token in compact for token in ("tl", "bütçe", "butce", "aylık", "aylik", "gelir", "maaş", "maas", "limit")):
+        return None
+
+    digits = []
+    current = ""
+    for char in compact:
+        if char.isdigit() or char in "., ":
+            current += char
+            continue
+        if current.strip():
+            digits.append(current.strip())
+        current = ""
+    if current.strip():
+        digits.append(current.strip())
+
+    values: list[float] = []
+    for candidate in digits:
+        normalized = candidate.replace(" ", "")
+        if "," in normalized and "." in normalized:
+            normalized = normalized.replace(".", "").replace(",", ".")
+        elif "," in normalized:
+            normalized = normalized.replace(",", ".")
+        elif normalized.count(".") > 1:
+            normalized = normalized.replace(".", "")
+
+        try:
+            value = float(normalized)
+        except ValueError:
+            continue
+        if value >= 100:
+            values.append(value)
+
+    return max(values) if values else None
+
+
+def _extract_budget_from_answers(user_answers: dict[str, Any]) -> float | None:
+    for value in user_answers.values():
+        if isinstance(value, str):
+            parsed = _parse_money_value(value)
+            if parsed:
+                return parsed
+    return None
+
+
+def _continuous_budget_score(
+    *,
+    product_price: float,
+    monthly_budget: float,
+    user_answers: dict[str, Any],
+    budget_guard: dict[str, Any],
+    financial_risk: str,
+) -> int:
+    budget_from_answers = _extract_budget_from_answers(user_answers)
+    effective_budget = budget_from_answers or monthly_budget or float(budget_guard.get("monthly_budget") or 0.0)
+
+    if product_price > 0 and effective_budget > 0:
+        return _score_from_ratio(product_price / effective_budget)
+
+    budget_utilization = float(budget_guard.get("budget_utilization") or 0.0)
+    if budget_utilization > 0:
+        return _score_from_ratio(budget_utilization)
+
+    price_vs_average = float(budget_guard.get("price_vs_average") or 0.0)
+    if price_vs_average > 0:
+        return _score_from_ratio(price_vs_average * 0.45)
+
+    fallback_by_risk: dict[str, int] = {"low": 82, "medium": 48, "high": 18, "unknown": 45}
+    return fallback_by_risk.get(financial_risk, 50)
+
+
+def _expand_total_score(score: float) -> float:
+    """Widens the useful final-score range while keeping a safe 20-95 clamp."""
+    return max(20.0, min(95.0, 50.0 + (score - 50.0) * 1.25))
+
+
+def _thresholds_for_mode(mode: str) -> tuple[int, int, int]:
+    if mode == "soft":
+        return 70, 50, 30
+    if mode == "strict":
+        return 80, 65, 45
+    return 75, 55, 32
 
 
 def _build_result(
@@ -96,6 +209,7 @@ async def run(state: AgentState) -> dict:
     review_risk: dict[str, Any] = state.get("review_risk_output") or {}
     need_analyzer: dict[str, Any] = state.get("need_analyzer_output") or {}
     budget_guard: dict[str, Any] = state.get("budget_guard_output") or {}
+    user_answers: dict[str, Any] = state.get("user_answers") or {}
     traces: list[Any] = list(state.get("agent_traces") or [])
 
     # ------------------------------------------------------------------
@@ -130,8 +244,15 @@ async def run(state: AgentState) -> dict:
 
     # budget_score
     financial_risk: str = budget_guard.get("financial_risk") or "unknown"
-    budget_score_map: dict[str, int] = {"low": 90, "medium": 55, "high": 20, "unknown": 50}
-    budget_score: int = budget_score_map.get(financial_risk, 50)
+    product_price = float(state.get("product_price") or budget_guard.get("product_price") or 0.0)
+    monthly_budget = float(state.get("monthly_budget") or budget_guard.get("monthly_budget") or 0.0)
+    budget_score: int = _continuous_budget_score(
+        product_price=product_price,
+        monthly_budget=monthly_budget,
+        user_answers=user_answers,
+        budget_guard=budget_guard,
+        financial_risk=financial_risk,
+    )
 
     # behavior_score
     impulsivity_score: int = int(behavior_profile.get("impulsivity_score") or 50)
@@ -142,33 +263,35 @@ async def run(state: AgentState) -> dict:
     # Adım 3: Ağırlıklı toplam skor
     # ------------------------------------------------------------------
     weights: dict[str, dict[str, float]] = {
-        "soft": {"product": 0.30, "need": 0.20, "budget": 0.25, "behavior": 0.25},
-        "balanced": {"product": 0.25, "need": 0.30, "budget": 0.25, "behavior": 0.20},
-        "strict": {"product": 0.20, "need": 0.35, "budget": 0.25, "behavior": 0.20},
+        "soft": {"product": 0.15, "need": 0.40, "budget": 0.35, "behavior": 0.10},
+        "balanced": {"product": 0.25, "need": 0.25, "budget": 0.25, "behavior": 0.25},
+        "strict": {"product": 0.40, "need": 0.15, "budget": 0.15, "behavior": 0.30},
     }
     w = weights.get(mode, weights["balanced"])
 
-    total_score: float = product_score * w["product"] + need_score * w["need"] + budget_score * w["budget"] + behavior_score * w["behavior"]
+    raw_total_score: float = product_score * w["product"] + need_score * w["need"] + budget_score * w["budget"] + behavior_score * w["behavior"]
+    total_score: float = _expand_total_score(raw_total_score)
 
     # ------------------------------------------------------------------
     # Adım 4: Karar eşikleri ve kritik skor guard'ları
     # ------------------------------------------------------------------
-    offset = _mode_offset(mode)
-    buy_threshold = 72 + offset
-    conditional_threshold = 52 + offset
-    wait_threshold = 32 + offset
+    buy_threshold, conditional_threshold, wait_threshold = _thresholds_for_mode(mode)
 
     if product_score < 35:
         verdict = "consider_alternative"
     elif financial_risk == "high" and mode in ("balanced", "strict"):
         verdict = "dont_buy" if mode == "strict" else "wait"
+    elif mode == "strict" and need_score < 35:
+        verdict = "dont_buy"
     elif need_score < 25:
         verdict = "dont_buy"
+    elif mode == "strict" and total_score < buy_threshold and (need_score < 50 or budget_score < 35):
+        verdict = "wait"
     elif need_score < 40 and total_score >= conditional_threshold:
         verdict = "wait"
     elif review_confidence > 0 and product_score < 45:
         verdict = "wait"
-    elif total_score >= buy_threshold and need_score >= 60 and budget_score >= 50:
+    elif total_score >= buy_threshold and need_score >= 45 and budget_score >= 35:
         verdict = "buy"
     elif total_score >= conditional_threshold:
         verdict = "conditional_buy"
@@ -180,23 +303,7 @@ async def run(state: AgentState) -> dict:
     # ------------------------------------------------------------------
     # Adım 5: Güven skoru
     # ------------------------------------------------------------------
-    confidence_score = 50
-
-    if review_confidence >= 80:
-        confidence_score += 20
-    elif review_confidence >= 60:
-        confidence_score += 10
-
-    if raw_need != -1:  # gerçekten skorlandı
-        confidence_score += 15
-
-    if financial_risk != "unknown":
-        confidence_score += 10
-
-    if behavior_profile.get("profile_tag") not in (None, "unknown"):
-        confidence_score += 5
-
-    confidence_score = min(100, confidence_score)
+    confidence_score = _clamp_score(total_score, 20, 95)
 
     # ------------------------------------------------------------------
     # Adım 6: Uyarı flagleri

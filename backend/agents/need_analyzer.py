@@ -231,6 +231,94 @@ def _questions_are_demo_ready(questions: list[dict[str, Any]]) -> bool:
 # İkinci çalışma: saf Python skorlama
 # ---------------------------------------------------------------------------
 
+def _contains_any(text: str, tokens: tuple[str, ...]) -> bool:
+    return any(token in text for token in tokens)
+
+
+def _answer_quality_score(answers: tuple[str, ...]) -> tuple[int, str | None]:
+    filled_answers = [answer.strip() for answer in answers if answer.strip()]
+    if not filled_answers:
+        return -20, "cevap bilgisi yetersiz"
+
+    combined = " ".join(filled_answers)
+    word_count = len(combined.split())
+    vague_tokens = ("bilmiyorum", "emin değil", "emin degil", "belki", "kararsız", "kararsiz", "fikrim yok")
+    short_yes_no_count = sum(answer in ("evet", "hayır", "hayir", "yok") for answer in filled_answers)
+
+    if word_count <= 3 or short_yes_no_count >= 2 or _contains_any(combined, vague_tokens):
+        return -15, "cevaplar kısa veya belirsiz"
+
+    if word_count >= 12:
+        return 8, "cevaplar yeterince açıklayıcı"
+
+    return 0, None
+
+
+def _need_intent_score(text: str) -> tuple[int, list[str]]:
+    score = 0
+    reasons: list[str] = []
+
+    strong_need_tokens = (
+        "iş için",
+        "is icin",
+        "işte",
+        "iste",
+        "okul için",
+        "okul icin",
+        "proje",
+        "müşteri",
+        "musteri",
+        "lazım",
+        "lazim",
+        "gerekiyor",
+        "ihtiyacım var",
+        "ihtiyacim var",
+        "zorundayım",
+        "zorundayim",
+        "eski bozuldu",
+        "bozuldu",
+        "bozuk",
+        "kırıldı",
+        "kirildi",
+        "çalışmıyor",
+        "calismiyor",
+        "yerine alacağım",
+        "yerine alacagim",
+    )
+    moderate_need_tokens = ("her gün", "her gun", "günlük", "gunluk", "düzenli", "duzenli", "haftalık", "haftalik", "planladım", "planladim")
+    impulse_tokens = (
+        "çok istiyorum",
+        "cok istiyorum",
+        "güzel görünüyor",
+        "guzel gorunuyor",
+        "hoşuma gitti",
+        "hosuma gitti",
+        "beğendim",
+        "begendim",
+        "heves",
+        "trend",
+        "reklam",
+        "sosyal medya",
+        "indirim",
+        "fırsat",
+        "firsat",
+        "kaçırmak istemiyorum",
+        "kacirmak istemiyorum",
+    )
+
+    if _contains_any(text, strong_need_tokens):
+        score += 28
+        reasons.append("net ihtiyaç kanıtı var")
+    elif _contains_any(text, moderate_need_tokens):
+        score += 14
+        reasons.append("düzenli kullanım niyeti var")
+
+    if _contains_any(text, impulse_tokens):
+        score -= 28
+        reasons.append("duygusal veya dürtüsel satın alma sinyali var")
+
+    return score, reasons
+
 
 def _score_need(
     user_answers: dict[str, Any],
@@ -245,36 +333,56 @@ def _score_need(
     q1 = str(user_answers.get("q1") or "").lower()
     q2 = str(user_answers.get("q2") or "").lower()
     q3 = str(user_answers.get("q3") or "").lower()
+    combined_answers = " ".join((q1, q2, q3))
+
+    quality_delta, quality_reason = _answer_quality_score((q1, q2, q3))
+    score += quality_delta
+    if quality_reason:
+        rationale_parts.append(quality_reason)
+
+    intent_delta, intent_reasons = _need_intent_score(combined_answers)
+    score += intent_delta
+    rationale_parts.extend(intent_reasons)
+    has_clear_need_signal = intent_delta >= 28
+    has_impulse_signal = intent_delta < 0 or _contains_any(
+        combined_answers,
+        ("istiyorum", "görünüyor", "gorunuyor", "çok istiyorum", "cok istiyorum", "güzel", "guzel", "hoşuma", "hosuma", "beğendim", "begendim", "heves"),
+    )
+    has_vague_signal = quality_delta < 0
+    has_need_evidence = intent_delta > 0 or _contains_any(
+        combined_answers,
+        ("net", "planlad", "ihtiyaç", "ihtiyac", "iş", "is", "gerekiyor", "lazım", "lazim"),
+    )
 
     # q1: kullanım sıklığı / ana amaç
     if any(token in q1 for token in ("her gün", "haftalık", "günlük", "sık", "düzenli")):
-        score += 20
+        score += 16
         rationale_parts.append("düzenli kullanım sinyali var")
     elif any(token in q1 for token in ("ayda", "bazen", "ara sıra")):
-        score += 6
+        score += 4
     elif any(token in q1 for token in ("nadiren", "özel durum", "emin değil")):
-        score -= 10
+        score -= 14
         rationale_parts.append("kullanım sıklığı düşük görünüyor")
 
     # q2: benzer ürüne zaten sahip → ihtiyacı düşür
     if "evet" in q2:
-        score -= 22
+        score -= 24
         rationale_parts.append("aynı işi gören ürün zaten var")
     elif "hayır" in q2:
-        score += 15
+        score += 14
         rationale_parts.append("mevcut alternatif yok")
 
     # q3: aciliyet sinyalleri
     if any(token in q3 for token in ("net", "planlad", "ihtiyaç", "iş", "gerekiyor")):
-        score += 12
+        score += 10
         rationale_parts.append("satın alma gerekçesi net")
     elif any(token in q3 for token in ("hemen", "bugün")):
-        score += 6
+        score += 2
     if any(token in q3 for token in ("indirim", "reklam", "sosyal", "ani", "heves")):
-        score -= 20
+        score -= 24
         rationale_parts.append("tetikleyici alışveriş sinyali var")
     elif any(token in q3 for token in ("emin değil", "belki", "merak")):
-        score -= 12
+        score -= 16
         rationale_parts.append("satın alma motivasyonu net değil")
 
     # Geçmiş ve bütçe sinyalleri
@@ -283,11 +391,15 @@ def _score_need(
         rationale_parts.append("yakın geçmişte benzer alışveriş var")
 
     financial_risk = str(budget_guard.get("financial_risk") or "unknown")
+    has_budget_info = financial_risk != "unknown" or float(budget_guard.get("monthly_budget") or 0.0) > 0 or float(budget_guard.get("budget_utilization") or 0.0) > 0
     if financial_risk == "high":
         score -= 12
         rationale_parts.append("bütçe riski yüksek")
     elif financial_risk == "low":
         score += 5
+    elif not has_budget_info:
+        score -= 5
+        rationale_parts.append("bütçe bilgisi yetersiz")
 
     # Davranış profili modifiye
     impulsivity_score = int(behavior_profile.get("impulsivity_score") or 50)
@@ -299,10 +411,22 @@ def _score_need(
 
     # Mod modifiye
     if mode == "strict":
-        score -= 8
+        if has_need_evidence:
+            score -= 4
+        else:
+            score -= 10
+            rationale_parts.append("sıkı modda ihtiyaç kanıtı yetersiz")
         rationale_parts.append("sıkı mod daha temkinli değerlendiriyor")
     elif mode == "soft":
-        score += 4
+        score += 10
+        rationale_parts.append("nazik mod ihtiyaç ifadesine daha toleranslı")
+
+    if has_clear_need_signal:
+        score = min(90, max(70, score))
+    elif has_impulse_signal:
+        score = max(25, min(40, score))
+    elif has_vague_signal:
+        score = max(30, min(45, score))
 
     need_score = max(0, min(100, score))
 
