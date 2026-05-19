@@ -55,10 +55,18 @@ async def _save_to_supabase(
     All errors are caught and logged — this must never interrupt the pipeline.
     """
     if record.user_id == "anonymous":
-        logger.debug("Skipping Supabase decision save for anonymous user")
+        logger.warning(
+            "Skipping Supabase decision save for anonymous user: decision_id=%s",
+            record.decision_id,
+        )
         return
 
     try:
+        logger.info(
+            "Saving completed decision to Supabase: decision_id=%s user_id=%s",
+            record.decision_id,
+            record.user_id,
+        )
         total_duration_ms: int = sum(int(t.get("duration_ms") or 0) for t in traces if isinstance(t, dict))
         decision_row = {
             "user_id": record.user_id,
@@ -76,8 +84,20 @@ async def _save_to_supabase(
             "score_breakdown": verdict_out.get("score_breakdown") or {},
         }
         saved_decision_id = await supabase_client.save_decision(decision_row)
-        if saved_decision_id:
-            await supabase_client.save_decision_scores(saved_decision_id, decision_row["score_breakdown"])
+        if not saved_decision_id:
+            logger.warning(
+                "Supabase decision insert returned no id: decision_id=%s user_id=%s",
+                record.decision_id,
+                record.user_id,
+            )
+            return
+
+        logger.info(
+            "Supabase decision insert completed: decision_id=%s supabase_id=%s",
+            record.decision_id,
+            saved_decision_id,
+        )
+        await supabase_client.save_decision_scores(saved_decision_id, decision_row["score_breakdown"])
     except Exception:  # noqa: BLE001
         logger.exception("Supabase save failed (non-fatal)")
 

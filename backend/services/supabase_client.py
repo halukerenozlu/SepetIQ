@@ -30,14 +30,20 @@ def get_client():
     url = os.getenv("SUPABASE_URL")
     # Service key bypasses RLS — required for server-side inserts.
     # Falls back to anon key for read-only dev usage.
-    key = os.getenv("SUPABASE_SERVICE_KEY") or os.getenv("SUPABASE_ANON_KEY")
+    service_key = os.getenv("SUPABASE_SERVICE_KEY")
+    anon_key = os.getenv("SUPABASE_ANON_KEY")
+    key = service_key or anon_key
 
     if not url or not key:
-        logger.debug("Supabase credentials not configured (SUPABASE_URL / SUPABASE_SERVICE_KEY)")
+        logger.warning("Supabase credentials not configured; save operations will be skipped")
         return None
 
     from supabase import create_client  # type: ignore[import-untyped]
 
+    logger.info(
+        "Initializing Supabase client with %s key",
+        "service" if service_key else "anon",
+    )
     _client = create_client(url, key)
     return _client
 
@@ -68,10 +74,15 @@ async def save_decision(decision_data: dict) -> str | None:
     """
     client = get_client()
     if client is None:
-        logger.debug("Supabase not configured, skipping save_decision")
+        logger.warning("Supabase not configured, skipping save_decision")
         return None
 
     def _insert_row(data: dict) -> str | None:
+        logger.info(
+            "Inserting decision row into Supabase: user_id=%s product_name=%s",
+            data.get("user_id"),
+            data.get("product_name"),
+        )
         result = client.table("decisions").insert(data).execute()
         if result.data:
             row_id: str = result.data[0].get("id", "")
@@ -89,10 +100,10 @@ async def save_decision(decision_data: dict) -> str | None:
                 retry_data = {k: v for k, v in decision_data.items() if k != "score_breakdown"}
                 try:
                     return _insert_row(retry_data)
-                except Exception as retry_exc:
-                    logger.error("save_decision retry failed: %s", retry_exc)
+                except Exception:
+                    logger.exception("save_decision retry failed")
                     return None
-            logger.error("save_decision failed: %s", exc)
+            logger.exception("save_decision failed")
             return None
 
     return await asyncio.to_thread(_sync_insert)
