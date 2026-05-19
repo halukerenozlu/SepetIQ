@@ -78,8 +78,8 @@ async def _save_to_supabase(
         saved_decision_id = await supabase_client.save_decision(decision_row)
         if saved_decision_id:
             await supabase_client.save_decision_scores(saved_decision_id, decision_row["score_breakdown"])
-    except Exception as exc:  # noqa: BLE001
-        logger.warning("Supabase save failed (non-fatal): %s", exc)
+    except Exception:  # noqa: BLE001
+        logger.exception("Supabase save failed (non-fatal)")
 
 
 router = APIRouter(prefix="/api/v1/decisions", tags=["decisions"])
