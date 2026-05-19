@@ -15,6 +15,16 @@ SepetIQ is an **agentic AI browser extension** that activates on e-commerce page
 
 ---
 
+## Screenshots
+
+![Landing](docs/screenshots/landing.png)
+
+![Dashboard](docs/screenshots/dashboard.png)
+
+![Decision Detail](docs/screenshots/detail.png)
+
+![Extension](docs/screenshots/extension.png)
+
 ## How It Works
 
 ### 3 Scores
