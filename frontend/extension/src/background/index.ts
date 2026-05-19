@@ -37,6 +37,31 @@ async function getApiBase(): Promise<string> {
   });
 }
 
+async function getStoredSupabaseToken(): Promise<string | null> {
+  return new Promise((resolve) => {
+    chrome.storage.local.get("supabase_token", (result) => {
+      const token = result["supabase_token"];
+      resolve(typeof token === "string" && token.length > 0 ? token : null);
+    });
+  });
+}
+
+async function getBackendHeaders(
+  authSession: ExtensionAuthSession,
+): Promise<Record<string, string>> {
+  const supabaseToken =
+    (await getStoredSupabaseToken()) ?? authSession.accessToken;
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+
+  if (supabaseToken) {
+    headers.Authorization = `Bearer ${supabaseToken}`;
+  }
+
+  return headers;
+}
+
 async function getExtensionAuthSession(): Promise<ExtensionAuthSession> {
   return (
     (await getSessionFromChromeStorage()) ??
@@ -315,13 +340,7 @@ async function streamAnalysis(
   activeAnalysis.set(tabId, controller);
 
   let response: Response;
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
-
-  if (authSession.accessToken) {
-    headers.Authorization = `Bearer ${authSession.accessToken}`;
-  }
+  const headers = await getBackendHeaders(authSession);
 
   startKeepalive();
 
@@ -399,13 +418,7 @@ async function submitAnswer(
   answers: Record<string, string>,
   authSession: ExtensionAuthSession,
 ): Promise<void> {
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
-
-  if (authSession.accessToken) {
-    headers.Authorization = `Bearer ${authSession.accessToken}`;
-  }
+  const headers = await getBackendHeaders(authSession);
 
   try {
     const response = await fetch(
