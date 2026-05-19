@@ -231,6 +231,7 @@ def _questions_are_demo_ready(questions: list[dict[str, Any]]) -> bool:
 # İkinci çalışma: saf Python skorlama
 # ---------------------------------------------------------------------------
 
+
 def _contains_any(text: str, tokens: tuple[str, ...]) -> bool:
     return any(token in text for token in tokens)
 
@@ -391,7 +392,9 @@ def _score_need(
         rationale_parts.append("yakın geçmişte benzer alışveriş var")
 
     financial_risk = str(budget_guard.get("financial_risk") or "unknown")
-    has_budget_info = financial_risk != "unknown" or float(budget_guard.get("monthly_budget") or 0.0) > 0 or float(budget_guard.get("budget_utilization") or 0.0) > 0
+    has_budget_info = (
+        financial_risk != "unknown" or float(budget_guard.get("monthly_budget") or 0.0) > 0 or float(budget_guard.get("budget_utilization") or 0.0) > 0
+    )
     if financial_risk == "high":
         score -= 12
         rationale_parts.append("bütçe riski yüksek")
