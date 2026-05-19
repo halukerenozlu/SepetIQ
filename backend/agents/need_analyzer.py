@@ -31,14 +31,15 @@ logger = logging.getLogger(__name__)
 
 
 class Question(BaseModel):
-    id: str = Field(description="Question identifier: q1, q2, or q3")
+    id: str = Field(description="Question identifier: q1, q2, q3, q4, or q5")
     text: str = Field(description="Question text in Turkish")
     type: Literal["multiple_choice", "yes_no"] = Field(description="Question type")
     options: list[str] = Field(description="Answer options in Turkish")
+    triggered_by: Literal["ihtiyaç", "bütçe", "aciliyet", "alternatif", "duygusal"] = Field(description="Internal scoring label, not displayed to the user")
 
 
 class QuestionsOutput(BaseModel):
-    questions: list[Question] = Field(description="Exactly 3 questions")
+    questions: list[Question] = Field(description="Exactly 5 questions")
 
 
 # ---------------------------------------------------------------------------
@@ -47,9 +48,9 @@ class QuestionsOutput(BaseModel):
 
 _SYSTEM_PROMPT = (
     "You are a need-assessment assistant for a shopping AI. "
-    "Generate exactly 3 questions in Turkish to assess whether the user truly needs this product. "
-    "Questions should be specific to the product category, price, and user profile. "
-    "Uncover: actual use case, frequency of use, whether they already own something similar, and purchase trigger. "
+    "Generate exactly 5 questions in Turkish to assess whether the user truly needs this product. "
+    "Questions should be specific to the product category, price, mode, and user profile. "
+    "Uncover: actual use case, budget, urgency, alternatives, and emotional/impulse trigger. "
     "Keep every option short enough for a compact browser extension UI. "
     "Respond ONLY with valid JSON. No markdown, no explanation."
 )
@@ -59,34 +60,60 @@ Product: {product_name} ({category}), Price: {price} TL
 User behavior profile: {profile_tag}, impulsivity score: {impulsivity_score}/100
 Mode: {mode}
 
-Generate 3 questions. Return this exact JSON:
+Generate 5 questions. Return this exact JSON:
 {{
   "questions": [
     {{
       "id": "q1",
       "text": "<question in Turkish>",
       "type": "multiple_choice",
-      "options": ["<option1>", "<option2>", "<option3>"]
+      "options": ["<option1>", "<option2>", "<option3>"],
+      "triggered_by": "ihtiyaç"
     }},
     {{
       "id": "q2",
       "text": "<question in Turkish>",
       "type": "yes_no",
-      "options": ["Evet", "Hayır"]
+      "options": ["Evet", "Hayır"],
+      "triggered_by": "alternatif"
     }},
     {{
       "id": "q3",
       "text": "<question in Turkish>",
       "type": "multiple_choice",
-      "options": ["<option1>", "<option2>", "<option3>", "<option4>"]
+      "options": ["<option1>", "<option2>", "<option3>", "<option4>"],
+      "triggered_by": "aciliyet"
+    }},
+    {{
+      "id": "q4",
+      "text": "<question in Turkish>",
+      "type": "multiple_choice",
+      "options": ["<option1>", "<option2>", "<option3>"],
+      "triggered_by": "bütçe"
+    }},
+    {{
+      "id": "q5",
+      "text": "<question in Turkish>",
+      "type": "multiple_choice",
+      "options": ["<option1>", "<option2>", "<option3>"],
+      "triggered_by": "duygusal"
     }}
   ]
 }}
 
 Rules:
-- q1: ask about product-specific use frequency or main use case
-- q2: ask whether they already own something similar that still works (yes_no)
-- q3: ask about urgency or purchase trigger
+- q1: ask about product-specific need or main feature/use case
+- q2: ask about alternatives or existing similar product (yes_no)
+- q3: ask about urgency or purchase timeline
+- q4: ask whether this purchase fits the user's budget
+- q5: ask whether the desire is emotional/impulsive or lasting
+- Electronics/phone/computer: ask which feature they need and what is wrong with their current device
+- Clothing/shoes: ask usage purpose and whether they already own something similar
+- Home/kitchen: ask household size and whether the current item broke or this is a new purchase
+- General/other: ask how long they have been looking and whether they checked alternatives
+- soft mode: gentle and non-judgmental, e.g. "Bu ürün sizi mutlu eder mi?"
+- balanced mode: neutral and information-gathering
+- strict mode: probing and reflective, e.g. "Bu ürün olmadan hayatınız nasıl devam ediyor?"
 - For "impulsive" profile, make questions more probing
 - For "strict" mode, add a question about budget planning
 - Options should be at most 45 characters
@@ -101,21 +128,38 @@ Rules:
 _FALLBACK_QUESTIONS: list[dict[str, Any]] = [
     {
         "id": "q1",
-        "text": "Bu ürünü ne sıklıkla kullanmayı planlıyorsunuz?",
+        "text": "Bu ürünü hangi gerçek ihtiyaç için düşünüyorsunuz?",
         "type": "multiple_choice",
-        "options": ["Her gün", "Haftada birkaç kez", "Ayda birkaç kez", "Nadiren"],
+        "options": ["Günlük ihtiyaç", "Ara sıra kullanım", "Emin değilim"],
+        "triggered_by": "ihtiyaç",
     },
     {
         "id": "q2",
-        "text": "Benzer bir ürününüz var mı?",
+        "text": "Aynı işi gören benzer bir ürününüz var mı?",
         "type": "yes_no",
         "options": ["Evet", "Hayır"],
+        "triggered_by": "alternatif",
     },
     {
         "id": "q3",
-        "text": "Bu ürüne ne zaman ihtiyacınız var?",
+        "text": "Bu ürüne ne kadar acil ihtiyacınız var?",
         "type": "multiple_choice",
-        "options": ["Hemen", "Bu hafta", "Bu ay", "Emin değilim"],
+        "options": ["Hemen", "Bu ay", "Acil değil"],
+        "triggered_by": "aciliyet",
+    },
+    {
+        "id": "q4",
+        "text": "Bu alışveriş bütçenizde planlı mı?",
+        "type": "multiple_choice",
+        "options": ["Evet, planlı", "Biraz zorlar", "Planlı değil"],
+        "triggered_by": "bütçe",
+    },
+    {
+        "id": "q5",
+        "text": "Bu isteğin kaynağı daha çok neye benziyor?",
+        "type": "multiple_choice",
+        "options": ["Gerçek ihtiyaç", "Mutlu eder", "Anlık heves"],
+        "triggered_by": "duygusal",
     },
 ]
 
@@ -162,6 +206,34 @@ def _short_product_type(product_name: str, category: str) -> str:
     return "bu ürünü"
 
 
+def _category_bucket(product_name: str, category: str) -> str:
+    text = f"{product_name} {category}".lower()
+    if any(
+        word in text
+        for word in (
+            "telefon",
+            "phone",
+            "iphone",
+            "galaxy",
+            "laptop",
+            "notebook",
+            "bilgisayar",
+            "electronics",
+            "elektronik",
+            "kulaklık",
+            "kulaklik",
+            "watch",
+            "saat",
+        )
+    ):
+        return "electronics"
+    if any(word in text for word in ("giyim", "ayakkabı", "ayakkabi", "elbise", "pantolon", "ceket", "sneaker", "shoe")):
+        return "clothing"
+    if any(word in text for word in ("ev", "mutfak", "kitchen", "home", "kahve", "tencere", "süpürge", "supurge", "fırın", "firin")):
+        return "home"
+    return "general"
+
+
 def _build_fallback_questions(
     product_name: str,
     category: str,
@@ -170,49 +242,55 @@ def _build_fallback_questions(
 ) -> list[dict[str, Any]]:
     product_type = _short_product_type(product_name, category)
     profile_tag = str(behavior_profile.get("profile_tag") or "unknown")
-    q3_text = f"{product_type.capitalize()} için satın alma sebebin ne?"
-    q3_options = [
-        "Net bir ihtiyacım var",
-        "İndirim baskısı var",
-        "Merak ettim, emin değilim",
-    ]
+    bucket = _category_bucket(product_name, category)
 
-    if mode == "strict":
-        q3_text = f"{product_type.capitalize()} bütçende planlı mı?"
-        q3_options = ["Evet, planladım", "Hayır, ani karar", "Emin değilim"]
+    category_questions: dict[str, tuple[str, str]] = {
+        "electronics": ("Bu ürünün hangi özelliğine ihtiyacınız var?", "Mevcut cihazınızla ne sorununuz var?"),
+        "clothing": ("Bu ürünü hangi amaçla kullanacaksınız?", "Gardırobunuzda benzer bir ürün var mı?"),
+        "home": ("Kaç kişilik bir hane için alıyorsunuz?", "Mevcut ürününüz bozuldu mu yoksa yeni mi alıyorsunuz?"),
+        "general": ("Bu ürüne ne zamandır bakıyorsunuz?", "Alternatif ürünleri de incelediniz mi?"),
+    }
+    q1_text, q2_text = category_questions[bucket]
+
+    q3_text = "Bu satın alma sizin için ne kadar acil?"
+    q4_text = f"{product_type.capitalize()} bütçenizde planlı mı?"
+    q5_text = "Bu istek daha çok ihtiyaç mı, duygusal bir istek mi?"
+
+    if mode == "soft":
+        q3_text = "Bu ürünü biraz beklemek sizi rahatsız eder mi?"
+        q5_text = "Bu ürün sizi gerçekten mutlu eder mi?"
+    elif mode == "strict":
+        q3_text = "Bu ürünü almadan hayatınız nasıl devam ediyor?"
+        q4_text = "Bu harcamayı bugün yapmanız bütçenizi zorlar mı?"
+        q5_text = "Bu karar ihtiyaçtan mı, anlık istekten mi geliyor?"
     elif profile_tag == "impulsive":
-        q3_text = f"{product_type.capitalize()} isteği nereden geldi?"
-        q3_options = ["Gerçek ihtiyaç", "İndirim/reklam", "Anlık heves"]
+        q5_text = "Bu istek indirim veya reklamdan mı tetiklendi?"
 
     return [
         {
             "id": "q1",
-            "text": f"{product_type.capitalize()} hangi sıklıkla kullanacaksın?",
+            "text": q1_text,
             "type": "multiple_choice",
-            "options": ["Her gün/haftalık", "Ayda birkaç kez", "Nadiren"],
+            "options": ["Net ihtiyacım var", "Olursa iyi olur", "Emin değilim"],
+            "triggered_by": "ihtiyaç",
         },
-        {
-            "id": "q2",
-            "text": "Aynı işi gören çalışan bir ürünün var mı?",
-            "type": "yes_no",
-            "options": ["Evet", "Hayır"],
-        },
-        {
-            "id": "q3",
-            "text": q3_text,
-            "type": "multiple_choice",
-            "options": q3_options,
-        },
+        {"id": "q2", "text": q2_text, "type": "yes_no", "options": ["Evet", "Hayır"], "triggered_by": "alternatif"},
+        {"id": "q3", "text": q3_text, "type": "multiple_choice", "options": ["Hemen gerekli", "Bekleyebilir", "Acil değil"], "triggered_by": "aciliyet"},
+        {"id": "q4", "text": q4_text, "type": "multiple_choice", "options": ["Evet, planlı", "Biraz zorlar", "Planlı değil"], "triggered_by": "bütçe"},
+        {"id": "q5", "text": q5_text, "type": "multiple_choice", "options": ["Gerçek ihtiyaç", "Mutlu eder", "Anlık heves"], "triggered_by": "duygusal"},
     ]
 
 
 def _questions_are_demo_ready(questions: list[dict[str, Any]]) -> bool:
-    if len(questions) != 3:
+    if len(questions) != 5:
         return False
 
+    allowed_labels = {"ihtiyaç", "bütçe", "aciliyet", "alternatif", "duygusal"}
     for question in questions:
         text = str(question.get("text") or "")
         options = question.get("options") or []
+        if question.get("triggered_by") not in allowed_labels:
+            return False
         if len(text) < 12 or len(text) > 150:
             return False
         if question.get("type") == "yes_no":
@@ -334,9 +412,10 @@ def _score_need(
     q1 = str(user_answers.get("q1") or "").lower()
     q2 = str(user_answers.get("q2") or "").lower()
     q3 = str(user_answers.get("q3") or "").lower()
-    combined_answers = " ".join((q1, q2, q3))
+    extra_answers = [str(user_answers.get(question_id) or "").lower() for question_id in ("q4", "q5")]
+    combined_answers = " ".join((q1, q2, q3, *extra_answers))
 
-    quality_delta, quality_reason = _answer_quality_score((q1, q2, q3))
+    quality_delta, quality_reason = _answer_quality_score((q1, q2, q3, *extra_answers))
     score += quality_delta
     if quality_reason:
         rationale_parts.append(quality_reason)
