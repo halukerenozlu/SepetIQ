@@ -170,8 +170,9 @@ def _format_reviews(reviews: list[dict[str, Any]]) -> str:
 
 
 def _fallback(summary: str, review_count: int = 0) -> dict[str, Any]:
+    risk_score = 30 if review_count == 0 else 50
     return {
-        "risk_score": 50,
+        "risk_score": risk_score,
         "confidence": 0,
         "review_count": review_count,
         "positive_rate": 0.0,
@@ -205,7 +206,7 @@ async def run(state: AgentState) -> dict:
                 "status": "completed",
                 "duration_ms": duration_ms,
                 "input_summary": "0 yorum analiz edildi",
-                "output_summary": "Risk skoru: 50/100, 0 risk faktörü",
+                "output_summary": "Risk skoru: 30/100, 0 risk faktörü",
                 "key_findings": [],
                 "triggered_actions": [],
             }

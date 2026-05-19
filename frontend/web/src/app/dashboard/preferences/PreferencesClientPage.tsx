@@ -274,9 +274,13 @@ export default function PreferencesPage({
             <div className="relative">
               <Input
                 type="number"
-                className="h-11 text-lg font-bold"
+                min={0}
+                className="h-11 text-lg font-bold text-right pr-10"
                 placeholder="0"
-                value={prefs.monthly_budget ?? ""}
+                value={prefs.monthly_budget || ""}
+                onKeyDown={(e) =>
+                  ["e", "E", "+", "-"].includes(e.key) && e.preventDefault()
+                }
                 onChange={(e) =>
                   setPrefs((prev) => ({
                     ...prev,
@@ -284,6 +288,9 @@ export default function PreferencesPage({
                   }))
                 }
               />
+              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-zinc-400 font-medium">
+                ₺
+              </span>
             </div>
             <p className="text-xs text-zinc-400">
               Bu tutar, bütçe analizlerinde referans olarak kullanılır.
@@ -305,33 +312,21 @@ export default function PreferencesPage({
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between p-3 rounded-lg border bg-zinc-50">
               <div className="space-y-0.5">
-                <p className="text-sm font-medium">Tarayıcı Bildirimleri</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-medium">Tarayıcı Bildirimleri</p>
+                  <span className="text-xs bg-zinc-100 text-zinc-400 border border-zinc-200 px-1.5 py-0.5 rounded font-medium">
+                    Yakında
+                  </span>
+                </div>
                 <p className="text-xs text-zinc-500">
                   Kritik durumlarda anlık uyarı al.
                 </p>
               </div>
               <button
-                onClick={() =>
-                  setPrefs((prev) => ({
-                    ...prev,
-                    notifications_enabled: !prev.notifications_enabled,
-                  }))
-                }
-                className={cn(
-                  "relative h-6 w-11 rounded-full transition-colors",
-                  prefs.notifications_enabled
-                    ? "bg-emerald-500"
-                    : "bg-zinc-200",
-                )}
+                disabled
+                className="relative h-6 w-11 rounded-full bg-zinc-200 opacity-50 cursor-not-allowed"
               >
-                <div
-                  className={cn(
-                    "absolute top-1 left-1 h-4 w-4 rounded-full bg-white transition-transform",
-                    prefs.notifications_enabled
-                      ? "translate-x-5"
-                      : "translate-x-0",
-                  )}
-                />
+                <div className="absolute top-1 left-1 h-4 w-4 rounded-full bg-white" />
               </button>
             </div>
           </CardContent>
