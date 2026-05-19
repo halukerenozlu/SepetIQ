@@ -5,6 +5,10 @@ import type { Session } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase/client';
 
 const EXTENSION_SESSION_MESSAGE = 'SEPETIQ_SUPABASE_SESSION';
+const EXTENSION_BRIDGE_ORIGINS = new Set([
+  'http://localhost:3000',
+  'https://sepetiq.vercel.app',
+]);
 
 function postSessionToExtension(
   userId: string | null | undefined,
@@ -26,7 +30,7 @@ function postSupabaseSession(session: Session | null) {
 
 export function ExtensionSessionBridge() {
   useEffect(() => {
-    if (window.location.origin !== 'http://localhost:3000') return;
+    if (!EXTENSION_BRIDGE_ORIGINS.has(window.location.origin)) return;
 
     const supabase = createClient();
 

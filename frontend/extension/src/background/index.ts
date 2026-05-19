@@ -19,7 +19,10 @@ import type { ExtensionMessage } from "../shared/messages";
 // ─── Config ───────────────────────────────────────────────────────────────────
 
 const DEFAULT_API_BASE = "https://sepetiq-production.up.railway.app";
-const DASHBOARD_ORIGIN = "http://localhost:3000";
+const DASHBOARD_ORIGINS = [
+  "http://localhost:3000",
+  "https://sepetiq.vercel.app",
+];
 const SUPABASE_COOKIE_RE = /^sb-.+-auth-token(?:\.\d+)?$/;
 
 const activeAnalysis = new Map<number, AbortController>();
@@ -109,32 +112,46 @@ async function getSessionFromChromeStorage(): Promise<ExtensionAuthSession | nul
 }
 
 async function getSessionFromDashboardCookie(): Promise<ExtensionAuthSession | null> {
+  for (const dashboardOrigin of DASHBOARD_ORIGINS) {
+    const session = await getSessionFromDashboardCookieUrl(dashboardOrigin);
+    if (session?.userId || session?.accessToken) return session;
+  }
+
+  return null;
+}
+
+async function getSessionFromDashboardCookieUrl(
+  dashboardOrigin: string,
+): Promise<ExtensionAuthSession | null> {
   return new Promise((resolve) => {
-    chrome.cookies.getAll({ url: DASHBOARD_ORIGIN }, (cookies) => {
-      const authCookies = cookies.filter((cookie) =>
-        SUPABASE_COOKIE_RE.test(cookie.name),
-      );
-
-      const directCookie = authCookies.find((cookie) =>
-        cookie.name.endsWith("-auth-token"),
-      );
-      if (directCookie) {
-        const session = extractAuthSession(directCookie.value);
-        if (session.userId || session.accessToken) {
-          resolve(session);
-          return;
-        }
-      }
-
-      const chunkedValue = authCookies
-        .filter((cookie) => /\.\d+$/.test(cookie.name))
-        .sort((a, b) => cookieChunkIndex(a.name) - cookieChunkIndex(b.name))
-        .map((cookie) => cookie.value)
-        .join("");
-
-      resolve(chunkedValue ? extractAuthSession(chunkedValue) : null);
+    chrome.cookies.getAll({ url: dashboardOrigin }, (cookies) => {
+      resolve(extractSessionFromCookies(cookies));
     });
   });
+}
+
+function extractSessionFromCookies(
+  cookies: chrome.cookies.Cookie[],
+): ExtensionAuthSession | null {
+  const authCookies = cookies.filter((cookie) =>
+    SUPABASE_COOKIE_RE.test(cookie.name),
+  );
+
+  const directCookie = authCookies.find((cookie) =>
+    cookie.name.endsWith("-auth-token"),
+  );
+  if (directCookie) {
+    const session = extractAuthSession(directCookie.value);
+    if (session.userId || session.accessToken) return session;
+  }
+
+  const chunkedValue = authCookies
+    .filter((cookie) => /\.\d+$/.test(cookie.name))
+    .sort((a, b) => cookieChunkIndex(a.name) - cookieChunkIndex(b.name))
+    .map((cookie) => cookie.value)
+    .join("");
+
+  return chunkedValue ? extractAuthSession(chunkedValue) : null;
 }
 
 function findSessionInEntries(

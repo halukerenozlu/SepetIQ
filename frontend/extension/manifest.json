@@ -22,6 +22,7 @@
     "https://n11.com/*",
     "http://localhost:8000/*",
     "https://sepetiq-production.up.railway.app/*",
+    "https://sepetiq.vercel.app/*",
     "http://localhost:3000/*",
     "http://localhost:3001/*"
   ],
@@ -53,7 +54,7 @@
       "run_at": "document_idle"
     },
     {
-      "matches": ["http://localhost:3000/*"],
+      "matches": ["http://localhost:3000/*", "https://sepetiq.vercel.app/*"],
       "js": ["src/content/auth-bridge.ts"],
       "run_at": "document_idle"
     }

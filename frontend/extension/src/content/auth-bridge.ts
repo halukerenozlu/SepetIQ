@@ -1,7 +1,7 @@
 /**
  * content/auth-bridge.ts — Dashboard session bridge
  *
- * Loaded only on the dashboard origin (localhost:3000). Listens for
+ * Loaded only on dashboard origins. Listens for
  * SEPETIQ_SUPABASE_SESSION postMessages from the dashboard page and
  * mirrors the Supabase session into chrome.storage.local so the background
  * service worker can attach a bearer token to /analyze requests.
@@ -10,7 +10,10 @@
  * and only load on shopping product pages.
  */
 
-const DASHBOARD_ORIGIN = "http://localhost:3000";
+const DASHBOARD_ORIGINS = new Set([
+  "http://localhost:3000",
+  "https://sepetiq.vercel.app",
+]);
 const EXTENSION_SESSION_MESSAGE = "SEPETIQ_SUPABASE_SESSION";
 
 function readObject(value: unknown): Record<string, unknown> {
@@ -50,8 +53,8 @@ function clearSession(): void {
 
 window.addEventListener("message", (event: MessageEvent) => {
   if (
-    window.location.origin !== DASHBOARD_ORIGIN ||
-    event.origin !== DASHBOARD_ORIGIN ||
+    !DASHBOARD_ORIGINS.has(window.location.origin) ||
+    event.origin !== window.location.origin ||
     event.source !== window
   ) {
     return;
