@@ -99,7 +99,7 @@ _AGENT_NODES = frozenset(
 # SSE stream timeout per queue.get() (keepalive interval)
 _QUEUE_TIMEOUT_S: float = 1.0
 # Max time for a single graph phase before safe fallback
-_PIPELINE_PHASE_TIMEOUT_S: float = 45.0
+_PIPELINE_PHASE_TIMEOUT_S: float = 120.0
 # Max wait time for user to answer questions
 _ANSWER_TIMEOUT_S: float = 300.0
 

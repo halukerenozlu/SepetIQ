@@ -230,9 +230,10 @@ pnpm build
 8. Open `http://localhost:3000/dashboard` and sign in.
 9. Visit a supported product page and use the SepetIQ button.
 
-For jury review, sign in with the test account used for the demo. Analysis
-results are saved to the Supabase database and appear in the dashboard decision
-history after a product analysis completes.
+For jury review, use the **Demo Hesabıyla Giriş** button on the login screen.
+The demo password is provided in the hackathon submission form. Analysis results
+are saved to the Supabase database and appear in the dashboard decision history
+after a product analysis completes.
 
 The dashboard Preferences page includes a reset action for clearing saved
 decision history, previous shopping records, and personalization settings. This
